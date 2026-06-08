@@ -25,12 +25,13 @@ success criteria · out-of-scope boundaries.
 [`poc/poc_documentation.md`](poc/poc_documentation.md)
 **Four importable n8n workflows** mirroring SCM Master's decision layer — each runs end-to-end on
 mock data, no application code:
-1. [Procurement copilot](poc/1_procurement_copilot.workflow.json) — AI judges → gate decides
-2. [Demand forecast → dynamic reorder](poc/2_demand_forecast_reorder.workflow.json)
-3. [Should-cost gap](poc/3_should_cost_gap.workflow.json)
-4. [Capacity over-order guard](poc/4_capacity_guard.workflow.json)
 
-Screenshots of all four running are embedded in the doc ([poc/poc_screenshots/](poc/poc_screenshots/)).
+1. Procurement copilot — AI judges → gate decides
+2. Demand forecast → dynamic reorder
+3. Should-cost gap
+4. Capacity over-order guard
+
+**→ [See all workflows + screenshots](poc/poc_screenshots/)** — the running n8n flows, as pictures.
 Every workflow shows the boundary: a **Code** node owns the numbers/decision; **Claude** only advises.
 *(Optional: a 2–5 min screen recording link can be added to the doc.)*
 
