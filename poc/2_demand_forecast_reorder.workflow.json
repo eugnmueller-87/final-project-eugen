@@ -1,0 +1,90 @@
+{
+  "name": "SCM Master POC 2 — Demand Forecast → Dynamic Reorder",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1111111-1111-4111-8111-111111111111",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-700, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "s1", "name": "sku", "type": "string", "value": "SEC-M321R" },
+            { "id": "s2", "name": "product_name", "type": "string", "value": "64GB DDR5-4800 RDIMM" },
+            { "id": "s3", "name": "usage_rate_per_day", "type": "number", "value": 1.3 },
+            { "id": "s4", "name": "demand_sigma_per_day", "type": "number", "value": 0.9 },
+            { "id": "s5", "name": "on_hand", "type": "number", "value": 12 },
+            { "id": "s6", "name": "on_order", "type": "number", "value": 0 },
+            { "id": "s7", "name": "lead_time_days", "type": "number", "value": 18 },
+            { "id": "s8", "name": "service_level_z", "type": "number", "value": 1.645 }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2222222-2222-4222-8222-222222222222",
+      "name": "Usage Signals",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-480, 300],
+      "notes": "Stands in for the usage history a forecast learns from. z=1.645 ≈ 95% service level. No personal data."
+    },
+    {
+      "parameters": {
+        "jsCode": "// DETERMINISTIC inventory science (mirrors services/planning.py + forecasting.py).\n// No AI here — this is the math the AI's reliability note sits ON TOP of.\nconst s = $json;\nconst lead = s.lead_time_days || 0;\n\n// 1. Expected demand over the lead time.\nconst ltd = s.usage_rate_per_day * lead;\n\n// 2. Service-level safety stock = z * sigma over lead time (sigma_daily * sqrt(lead)).\nconst sigma_ltd = (s.demand_sigma_per_day || 0) * Math.sqrt(lead);\nconst safety_stock = Math.ceil(s.service_level_z * sigma_ltd);\n\n// 3. Dynamic reorder point + status.\nconst reorder_point = Math.ceil(ltd) + safety_stock;\nconst available = (s.on_hand || 0) + (s.on_order || 0);\nconst days_cover = s.usage_rate_per_day > 0 ? Math.floor(s.on_hand / s.usage_rate_per_day) : 999;\n\nlet status, action;\nif (available <= safety_stock)       { status = 'reorder'; action = `ORDER NOW — below safety (${available} ≤ ${safety_stock})`; }\nelse if (available <= reorder_point) { status = 'low';     action = `Order soon — below reorder point (${available} ≤ ${reorder_point})`; }\nelse                                 { status = 'ok';      action = `Healthy — ${days_cover}d cover`; }\n\nreturn [{ json: {\n  sku: s.sku, product: s.product_name,\n  lead_time_days: lead,\n  expected_lt_demand: Math.ceil(ltd),\n  safety_stock,                 // z * sigma_LTD — the upgrade over burn*lead/2\n  reorder_point,                // DYNAMIC: moves with lead time + variability\n  available, days_cover,\n  status, action\n}}];"
+      },
+      "id": "a3333333-3333-4333-8333-333333333333",
+      "name": "Forecast + Reorder Point (no AI)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-260, 300],
+      "notes": "The core deterministic engine: service-level safety stock and a reorder point that adapts as lead time moves — the exact failure mode (static reorder points) the use case targets."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 200,\n  \"system\": \"You are a demand-planning analyst. You receive an ALREADY-COMPUTED reorder calculation. Do NOT recompute it. In ONE short sentence, flag the single biggest reliability risk the math misses (e.g. lead-time volatility, thin history, single source) and whether a planner should trust the reorder point as-is. Plain text, no JSON.\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": {{ JSON.stringify(JSON.stringify($json)) }} }\n  ]\n}",
+        "options": {}
+      },
+      "id": "a4444444-4444-4444-8444-444444444444",
+      "name": "Claude — Reliability Note (AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-40, 300],
+      "notes": "AI ADVISES on reliability — it narrates OVER the computed numbers, never recomputes them. Needs ANTHROPIC_API_KEY."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Attach the AI's note to the deterministic result (code owns the numbers).\nconst calc = $('Forecast + Reorder Point (no AI)').item.json;\nlet note = '(AI note unavailable — the computed reorder point stands on its own)';\ntry { note = ($json.content?.[0]?.text ?? $json.text ?? note).trim(); } catch (e) {}\nreturn [{ json: { ...calc, ai_reliability_note: note } }];"
+      },
+      "id": "a5555555-5555-4555-8555-555555555555",
+      "name": "Combine (numbers + AI note)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [180, 300],
+      "notes": "Final output: the deterministic reorder decision + the AI's one-line reliability flag. The number is code's; the framing is the AI's."
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Usage Signals", "type": "main", "index": 0 }]] },
+    "Usage Signals": { "main": [[{ "node": "Forecast + Reorder Point (no AI)", "type": "main", "index": 0 }]] },
+    "Forecast + Reorder Point (no AI)": { "main": [[{ "node": "Claude — Reliability Note (AI)", "type": "main", "index": 0 }]] },
+    "Claude — Reliability Note (AI)": { "main": [[{ "node": "Combine (numbers + AI note)", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

@@ -1,0 +1,130 @@
+{
+  "name": "SCM Master — Procurement Copilot POC",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-680, 320]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "sku", "type": "string", "value": "NVDA-H100" },
+            { "id": "a2", "name": "product_name", "type": "string", "value": "H100 80GB SXM accelerator" },
+            { "id": "a3", "name": "supplier", "type": "string", "value": "Arrow Electronics" },
+            { "id": "a4", "name": "usage_rate_per_day", "type": "number", "value": 0.4 },
+            { "id": "a5", "name": "on_hand", "type": "number", "value": 0 },
+            { "id": "a6", "name": "on_order", "type": "number", "value": 0 },
+            { "id": "a7", "name": "lead_time_days", "type": "number", "value": 45 },
+            { "id": "a8", "name": "net_need", "type": "number", "value": 16 },
+            { "id": "a9", "name": "moq", "type": "number", "value": 8 },
+            { "id": "a10", "name": "unit_price", "type": "number", "value": 31000 },
+            { "id": "a11", "name": "spend_cap", "type": "number", "value": 25000 },
+            { "id": "a12", "name": "confidence_floor", "type": "number", "value": 0.8 }
+          ]
+        },
+        "options": {}
+      },
+      "id": "22222222-2222-4222-8222-222222222222",
+      "name": "Mock Demand Signals",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-460, 320],
+      "notes": "Stands in for a live /signals endpoint or a published Google Sheet. NO personal data — procurement facts only. Edit these values to test the gate (e.g. drop unit_price below the cap, or push net_need down)."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 400,\n  \"system\": \"You are a procurement sourcing copilot. You ADVISE only — you do NOT decide supplier, quantity, or price. Read the signals JSON and return ONE JSON object, no prose, with EXACTLY: confidence (number 0..1), decision (one of 'act','recommend','escalate'), rationale (one short sentence). 'act' only if the buy is clearly justified and low-risk; 'escalate' if a hard blocker exists; otherwise 'recommend'.\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": {{ JSON.stringify(JSON.stringify($json)) }} }\n  ]\n}",
+        "options": {}
+      },
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Claude — Advise (AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-240, 320],
+      "notes": "The AI step. Returns confidence/decision/rationale ONLY. Needs an ANTHROPIC_API_KEY env var (or paste a key). The model is structurally forbidden from outputting supplier/qty/price."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI's advice, then apply the DETERMINISTIC GATE (no AI here).\n// supplier/qty/price are COMPUTED — never taken from the model.\nconst signals = $('Mock Demand Signals').item.json;\n\n// 1. Extract the AI advice text (Anthropic returns content[].text) and parse JSON.\nlet advice = { confidence: 0, decision: 'escalate', rationale: 'no/invalid AI response (fail-closed)' };\ntry {\n  const raw = $json.content?.[0]?.text ?? $json.text ?? '';\n  const cleaned = raw.replace(/```json|```/g, '').trim();\n  const parsed = JSON.parse(cleaned);\n  if (typeof parsed.confidence === 'number' && parsed.decision) advice = parsed;\n} catch (e) { /* fail closed: keep the escalate default */ }\n\n// 2. Deterministic quantity: max(net_need, MOQ), rounded up to a whole MOQ multiple.\nconst moq = signals.moq || 1;\nlet qty = Math.max(signals.net_need || 0, moq);\nif (moq > 1) qty = Math.ceil(qty / moq) * moq;\nconst bundle_total = qty * (signals.unit_price || 0);\n\n// 3. The GATE the AI cannot override.\nlet verdict;\nif (advice.decision === 'escalate') verdict = 'escalate';\nelse if (advice.confidence < signals.confidence_floor) verdict = 'stage';      // below confidence floor -> human\nelse if (bundle_total > signals.spend_cap) verdict = 'stage';                  // over spend cap -> human\nelse if (advice.decision === 'act') verdict = 'auto_place';                    // clears every check\nelse verdict = 'stage';                                                        // 'recommend' -> human\n\nreturn [{ json: {\n  sku: signals.sku,\n  product: signals.product_name,\n  supplier: signals.supplier,             // from sourcing, not the model\n  qty,                                    // computed\n  unit_price: signals.unit_price,         // from contract, not the model\n  bundle_total,                           // computed\n  ai_confidence: advice.confidence,\n  ai_decision: advice.decision,\n  ai_rationale: advice.rationale,\n  gate_verdict: verdict,\n  decided_at: $now.toISO()\n}}];"
+      },
+      "id": "44444444-4444-4444-8444-444444444444",
+      "name": "Deterministic Gate (no AI)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-20, 320],
+      "notes": "This is the heart of the POC: the AI advised; this code DECIDES. Quantity = net_need/MOQ math; price = contract; verdict from spend cap + confidence floor + decision. Fails closed if the AI response is unparseable."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.gate_verdict }}",
+              "rightValue": "auto_place",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "55555555-5555-4555-8555-555555555555",
+      "name": "Auto-place?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [200, 320],
+      "notes": "Routes the decision. TRUE = AI cleared the gate -> auto-place a requisition. FALSE = stage/escalate -> a human approves."
+    },
+    {
+      "parameters": {},
+      "id": "66666666-6666-4666-8666-666666666666",
+      "name": "AUTO-PLACE → POST requisition",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [440, 200],
+      "notes": "In production: HTTP POST to /api/v1/requisitions/manual, or append a row to a 'POs to place' sheet. (NoOp here so the POC runs without a backend.)"
+    },
+    {
+      "parameters": {},
+      "id": "77777777-7777-4777-8777-777777777777",
+      "name": "STAGE/ESCALATE → notify buyer",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [440, 440],
+      "notes": "In production: send the buyer an email/Slack with the proposal + the AI's rationale + a one-click approve link. (NoOp here.)"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Mock Demand Signals", "type": "main", "index": 0 }]] },
+    "Mock Demand Signals": { "main": [[{ "node": "Claude — Advise (AI)", "type": "main", "index": 0 }]] },
+    "Claude — Advise (AI)": { "main": [[{ "node": "Deterministic Gate (no AI)", "type": "main", "index": 0 }]] },
+    "Deterministic Gate (no AI)": { "main": [[{ "node": "Auto-place?", "type": "main", "index": 0 }]] },
+    "Auto-place?": {
+      "main": [
+        [{ "node": "AUTO-PLACE → POST requisition", "type": "main", "index": 0 }],
+        [{ "node": "STAGE/ESCALATE → notify buyer", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

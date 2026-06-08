@@ -1,1 +1,0 @@
-POC n8n workflow export — placeholder. Replace with the exported JSON from n8n (Workflows -> Download).

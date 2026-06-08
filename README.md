@@ -14,14 +14,6 @@ agent-safety harness.
 
 ---
 
-## Status at a glance
-
-| ✅ Done | 🟡 Needs you (can't be generated) |
-|---|---|
-| All 7 core deliverable docs + the stretch MVP doc + HTML slides | n8n workflow **export** + screenshots + **demo recording** link · `presentation.pdf` export |
-
----
-
 ## Core deliverables (1–7)
 
 ### 1. Use Case Definition — ✅ done
@@ -29,13 +21,18 @@ agent-safety harness.
 Business problem · company profile · AI solution (with system types) · stakeholders · 4 measurable
 success criteria · out-of-scope boundaries.
 
-### 2. No-/Low-Code POC — 🟡 documented; artefacts pending
+### 2. No-/Low-Code POC — ✅ done
 [`poc/poc_documentation.md`](poc/poc_documentation.md)
-- ✅ POC **designed & documented**: an n8n workflow (signal → Claude advice → IF/Set gate →
-  auto-place vs. approval) — tools/why, step-by-step, AI capability, limitations vs. production,
-  how to reproduce.
-- 🟡 **You add:** export the flow to [`poc/poc_workflow.json`](poc/), drop node screenshots in
-  [`poc/poc_screenshots/`](poc/poc_screenshots/), paste the **2–5 min demo recording** link into the doc.
+**Four importable n8n workflows** mirroring SCM Master's decision layer — each runs end-to-end on
+mock data, no application code:
+1. [Procurement copilot](poc/1_procurement_copilot.workflow.json) — AI judges → gate decides
+2. [Demand forecast → dynamic reorder](poc/2_demand_forecast_reorder.workflow.json)
+3. [Should-cost gap](poc/3_should_cost_gap.workflow.json)
+4. [Capacity over-order guard](poc/4_capacity_guard.workflow.json)
+
+Screenshots of all four running are embedded in the doc ([poc/poc_screenshots/](poc/poc_screenshots/)).
+Every workflow shows the boundary: a **Code** node owns the numbers/decision; **Claude** only advises.
+*(Optional: a 2–5 min screen recording link can be added to the doc.)*
 
 ### 3. ROI & Risk Assessment — ✅ done
 [`roi_risk_assessment.md`](roi_risk_assessment.md)
@@ -77,7 +74,7 @@ how it extends the POC.
 
 **Core**
 - [x] `use_case_definition.md`
-- [~] POC: documentation ✅ · workflow export + screenshots + demo link 🟡
+- [x] POC: 4 n8n workflows + screenshots + documentation (optional: demo recording link)
 - [x] `roi_risk_assessment.md`
 - [x] `compliance/eu_ai_act_compliance.md`
 - [x] `compliance/gdpr_documentation.md`
@@ -100,7 +97,7 @@ final-project-eugen/
 ├── use_case_definition.md         # 1
 ├── poc/                           # 2
 │   ├── poc_documentation.md
-│   ├── poc_workflow.json          # (your n8n export)
+│   ├── 1_procurement_copilot.workflow.json  # + 3 more n8n workflows
 │   └── poc_screenshots/
 ├── roi_risk_assessment.md         # 3
 ├── compliance/
