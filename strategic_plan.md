@@ -14,16 +14,16 @@ technology and privacy story are proven; the open question is **distribution**, 
 | **0 — Build** | Schema + RLS, auth, the capture → OCR → redaction → LLM → review → publish pipeline, calendar/ICS, email/push, PWA, GDPR/deletion flows | ✅ Done (the MVP, Phases 1–5) |
 | **1 — POC** | No-code n8n workflows proving the "AI suggests / code & human decide" pattern + the privacy boundary | ✅ Done (see POC doc) |
 | **2 — Pilot** | One real Kita using it on its real board; tune redaction, validate the review flow, confirm parents stop missing things | ▶ In progress (live now) |
-| **3 — Hardening & multi-org** | Worker behind HTTPS, regenerated DB types, redaction-recall test, model card, retention schedule; onboard a handful of orgs | Next |
-| **4 — Channel scale** | Sell *through* a Kita-association / Träger / municipality; native shell (Capacitor) for app stores; productise self-serve onboarding | Planned |
+| **3 — Hardening & native** | Worker behind HTTPS, regenerated DB types, redaction-recall test, model card, retention schedule; **Capacitor Android shell → Play Store** (scaffolded, branded, builds an AAB in CI — native camera already wired; remaining: signed AAB, App Links, FCM push, closed test) | ▶ In progress |
+| **4 — Channel scale** | Sell *through* a Kita-association / Träger / municipality; an installable Play/App-Store presence as a channel credibility signal; iOS shell; productise self-serve onboarding | Planned |
 
 ## 2. Timeline & milestones
 
 | Phase | Duration | Milestones | Gate to proceed |
 |---|---|---|---|
 | **2 — Pilot** | ~4–6 weeks (live) | Real board captured weekly · redaction tuned on real notices · review flow used by the real admin · parents subscribed to feed/ICS/digest | The admin uses it unprompted; **parents report they stop missing closures/events**; no PII-leak incident |
-| **3 — Hardening & multi-org** | ~6–8 weeks | Worker fronted with TLS (a `worker.` subdomain) · redaction-recall test on a labelled notice set · per-model card + retention schedule · 3–5 orgs onboarded | Onboarding a new org is self-serve enough for the operator to do in <1 hr; clean security re-review |
-| **4 — Channel scale** | 3–6 months | A signed association/Träger/municipality channel reselling to many orgs · native app shells in the stores · pricing validated | A channel partner committed; per-org marginal cost stays ~cents; CAC via the channel beats self-serve |
+| **3 — Hardening & native** | ~6–8 weeks | Worker fronted with TLS · redaction-recall test · per-model card + retention schedule · **first signed AAB → Google Play closed test** (the 14-day / 12-tester long-pole) · 3–5 orgs onboarded | A clean security re-review; the closed test passes; onboarding a new org takes the operator <1 hr |
+| **4 — Channel scale** | 3–6 months | A signed association/Träger/municipality channel reselling to many orgs · **public Play listing** (+ later iOS) · pricing validated | A channel partner committed; per-org marginal cost stays ~cents; CAC via the channel beats self-serve |
 
 **Decision points are explicit:** the pilot can return "stop/redesign" — if the real admin won't
 adopt the *photograph-the-board* habit, or redaction proves unreliable on real notices, that is a

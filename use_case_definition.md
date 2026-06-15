@@ -91,8 +91,10 @@ notice visible to a member on its own, and never sees a raw photo or un-redacted
    confirmed), never the LLM's suggestion. Proven by the `publish_post` RPC being the sole path to
    member visibility.
 4. **Reach** — members get the information through channels the board never had: a private feed,
-   a subscribable calendar (ICS), an email-on-publish digest, web push, and per-category "new since
-   last visit" counts. Target in the pilot: parents report they *stop missing* closures/events.
+   a subscribable calendar (ICS), an email-on-publish digest, web push, per-category "new since
+   last visit" counts, a per-user **German/English** UI, and (in progress) an installable
+   **Android app** from the Play Store. Target in the pilot: parents report they *stop missing*
+   closures/events.
 
 ## 6. Out-of-scope boundaries
 

@@ -76,7 +76,11 @@ also outlined in [`presentation_outline.md`](presentation_outline.md) with Q&A p
 A deployed, working AI system (not a mockup): the full capture → OCR → local redaction → LLM
 extraction → human review → publish pipeline runs in production; a first Kita is testing it.
 Architecture · setup · run · limitations · how it extends the POC. Four-layer security model,
-adversarially reviewed (`SECURITY.md` in the source repo).
+adversarially reviewed (`SECURITY.md` in the source repo). Post-launch it also gained per-user
+**English/German** UI, decorative **AI cover images** (zero-PII, EU-endpoint-ready, dormant), a
+**reflection-photo deletion** privacy rule (migration `0023`), and a **Capacitor Android native
+shell** (remote-URL mode) that builds a Play-ready AAB in CI — toward an app-store presence for the
+Kita channel (see `mvp/mvp_documentation.md` §8–9).
 
 ---
 
@@ -126,7 +130,9 @@ final-project-eugen/
    extraction → human review → publish), with a real Kita testing it. Not a mockup.
 2. **Privacy is argued *and* enforced** — "no PII to the AI" is not a promise: PII is masked
    **locally before any external call**, raw-PII columns are DB-`REVOKE`'d from members, photo
-   consent is double-gated, and a build-blocking secret scan guards the boundary.
+   consent is double-gated, reflection originals (most likely to show children) are **deleted at
+   publish** (migration `0023`), and a build-blocking secret scan guards the boundary. The public
+   privacy page states the US-LLM step **truthfully**, not glossed.
 3. **POC is genuinely no-code** — four importable n8n workflows showing the redaction boundary, the
    advises/decides split, the human-confirm publish, and the consent gate — distinct from the MVP.
 4. **Compliance is reasoned, not asserted** — the EU AI Act classification walks the decision tree

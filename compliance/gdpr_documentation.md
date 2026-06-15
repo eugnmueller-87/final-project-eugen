@@ -109,6 +109,13 @@ inference.
 - **Column-level `REVOKE`** of `ocr_text_raw`, `ocr_text_redacted`, `redactions`,
   `source_image_path` from members (migration `0004`) — a member cannot read raw PII columns even by
   querying the base table directly.
+- **Reflection originals deleted at publish** (migration `0023`) — a *Rückblick* is the content type
+  most likely to depict identifiable children, so on publish its raw original is **deleted** from the
+  bucket and `source_image_path` nulled; `publish_post` **forces** `clear_photo_allowed = false` for
+  reflections so the consent path can never release a now-deleted original. This is **data
+  minimisation by design** applied to the highest-risk image type — directly lowering the "excessive
+  retention" and "data of minors" risks above. A failed delete is surfaced to the admin, never
+  silently swallowed.
 - **Human-in-the-loop publish** — no notice is member-visible without an admin confirming and
   publishing; the admin review is the redaction backstop (un-mask/re-mask is one tap).
 - **Double-gated clear-photo consent** (migration `0020`) — the raw original is shown to a member only
@@ -154,6 +161,15 @@ is the single most important GDPR property of the design, and it is enforced by 
 boundary, the worker-side redaction, and the column-level grants — not by a promise.
 
 > **Residency note (honest):** the extraction LLM is currently **Claude (Anthropic), US-hosted**.
-> The privacy guarantee holds because redaction is **upstream** of that call (no PII crosses). If an
-> org requires strict EU data residency for the AI step too, the worker's `extraction` module swaps
-> to an **EU LLM (Mistral)** as a **one-module change** — the rest of the pipeline is unchanged.
+> The privacy guarantee holds because redaction is **upstream** of that call (no PII crosses). The
+> public `/datenschutz` page states this truthfully — DB/storage/email and the local PII masking run
+> in the EU and raw photos never leave our infra, while the structure-extraction step sends **only
+> the already-masked text** to a sub-processor that currently processes outside the EU, **with a
+> stated intent to move that step into the EU too.** If an org requires strict EU residency for the
+> AI step now, the worker's `extraction` module swaps to an **EU LLM (Mistral)** as a **one-module
+> change** — the rest of the pipeline is unchanged.
+>
+> **Cover images (built, dormant):** the optional decorative cover image is generated from the
+> **redacted extraction (content type only)** — same zero-PII boundary — and is wired
+> **provider-agnostically** (`IMAGE_API_URL`/`IMAGE_API_KEY`) so the deployment points at an
+> **EU-hosted** image endpoint. No personal data and no raw photo reaches it.

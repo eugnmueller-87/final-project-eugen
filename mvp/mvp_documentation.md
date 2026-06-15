@@ -7,7 +7,10 @@ into a production-grade product. It is **live and in real-world testing**, not a
   there is deliberately **no public signup**)
 - **Source code:** https://github.com/eugnmueller-87/DIGITNEWS
 - **Status:** Phases 1–5 built; the full capture → publish pipeline runs end-to-end in production; a
-  first Kita is testing it.
+  first Kita is testing it. Post-launch the app gained per-user **English/German** UI, decorative
+  **AI cover images** (built, dormant until an EU image endpoint is deployed), a stronger
+  **reflection-photo deletion** privacy rule, and a **Capacitor Android native shell** (remote-URL
+  mode) that builds a Play-ready AAB in CI — see §9.
 
 > **Access for review:** the app is invite-only by design (it handles a real Kita's data). For a
 > grading walkthrough, request a provisioned demo account, or see the architecture + screenshots in
@@ -75,6 +78,11 @@ confirmed) — never the LLM's suggestion. Nothing is member-visible without an 
   stay `processing`; the rest of the app is fully functional (the core feature is inert, not broken).
 - **Privacy enforced at the DB** — PII columns are column-`REVOKE`'d from members; the clear-photo
   original is double-gated and signed-URL only.
+- **Reflection originals are deleted at publish** (migration `0023`) — a *Rückblick* is the content
+  type most likely to depict identifiable children, so on publish its raw original is deleted from
+  the `raw-photos` bucket and `source_image_path` is nulled; `publish_post` **forces**
+  `clear_photo_allowed = false` for reflections so the consent path can never release a now-deleted
+  original. A failed delete is surfaced to the admin, never silently swallowed.
 
 ## 4. Setup & installation
 
@@ -82,7 +90,7 @@ confirmed) — never the LLM's suggestion. Nothing is member-visible without an 
 # Web app (from the repo root)
 cp .env.example .env.local          # fill NEXT_PUBLIC_SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, SITE_URL
 npm install
-# Apply supabase/migrations/0001…0021 in order (SQL editor or `supabase db push`)
+# Apply supabase/migrations/0001…0023 in order (SQL editor or `supabase db push`)
 npm run dev                          # http://localhost:3000
 npm run verify                       # typecheck + lint + format + build + secret scans
 
@@ -135,12 +143,56 @@ tracked source.
 | Mock data, manual trigger | A live **multi-tenant** app on Vercel + a VPS worker, a real Kita testing it |
 | Proves the pipeline + safety patterns | Proves **production-readiness** |
 
-## 8. Repository
+## 8. Post-launch capabilities (built during real-world testing)
+
+The same human-confirm gate and privacy boundary carry every one of these:
+
+- **Per-user English/German UI** (`src/lib/i18n/`) — the whole app chrome translates; the *content*
+  (OCR'd German post text) and emails stay German. The dictionaries are compile-checked: a missing
+  or mismatched translation key is a **build error**, not a runtime gap.
+- **Decorative AI cover images** (text-to-image, FLUX.1 [schnell]) — generated **from the redacted
+  extraction (content type only)**, so the same zero-PII boundary as the text LLM call; no-people /
+  decorative guardrails; **fail-open** (a missing cover never blocks a post); provider-agnostic via
+  `IMAGE_API_URL`/`IMAGE_API_KEY` so the deployment points at an **EU-hosted** endpoint. The admin
+  sees the cover in `/review` and can drop it before publishing. **Built, dormant** until the worker
+  + an EU image endpoint are deployed.
+- **Reflection-photo deletion at publish** (migration `0023`) — see §3; the strongest of the
+  privacy rules, applied to the content type most likely to show children.
+- **Honest data-residency disclosure** — the public `/datenschutz` page states truthfully that DB /
+  storage / email and the **local PII masking** run in the EU and raw photos never leave our infra,
+  while the structure-extraction step sends **only the already-masked text** to a specialised AI
+  sub-processor that currently processes **outside the EU** (never raw photos / unmasked PII), with
+  a stated intent to move that step into the EU too. Mirrors `docs/STORE_PRIVACY.md §1`.
+
+## 9. Native app — Capacitor Android shell (toward app-store presence)
+
+A **Capacitor** native shell wraps the live app for the Google Play Store — the route to
+credibility and discoverability for the Kita channel.
+
+- **Architecture: remote-URL mode** — the shell loads the live hosted app (`server.url` =
+  kita-connect.cloud) rather than a static export, so all server components / middleware auth / API
+  routes keep working unchanged. The right choice for a Next.js App-Router app.
+- **Native camera** — `/aufnahme` swaps the web `<input capture>` for `@capacitor/camera` inside the
+  native shell (`src/app/(app)/aufnahme/native-camera.ts`); the photo flows through the **exact same**
+  compress → hash → upload → finalize pipeline, so the privacy/redaction path is unchanged. The
+  bridge is dynamically imported so `@capacitor/*` never weighs on the web bundle.
+- **Branded launcher icons + splash** generated from the sun mark; `appId` `app.aushang`.
+- **Cloud AAB build** — `.github/workflows/android.yml` builds an installable `app-debug.aab` on
+  demand (and a signed `app-release.aab` once the four `ANDROID_*` signing secrets are set), so no
+  local JDK/Android SDK is needed.
+- **Remaining native work** (tracked in `docs/NATIVE_TODO.md`): a signed release AAB, Android App
+  Links (so invite/set-password open the app), native **FCM push** alongside the existing web push,
+  the Play **closed test** (the launch long-pole), and a later **iOS** phase. `docs/STORE_PRIVACY.md`
+  already holds the Play Data-Safety answers and German permission strings.
+
+## 10. Repository
 
 GitHub: **https://github.com/eugnmueller-87/DIGITNEWS** — organised `src/app/` (the authenticated
 shell + capture/review/feed/calendar/operator routes), `src/lib/` (Supabase clients, content
-routing, the extraction schema, the photo signed-URL decision, the four-layer auth), `worker/`
-(FastAPI OCR + Presidio redaction + Claude extraction), `supabase/migrations/` (`0001`…`0021`),
-`docs/` (ARCHITECTURE, GO_LIVE_CHECKLIST, STORE_PRIVACY), `SECURITY.md` (adversarial-review
-findings), a two-job CI (`web` + `worker`), and a commit history across Phases 1–5 plus post-launch
-work. Branding is single-source in `src/config/brand.ts` (a rename is a one-file change).
+routing, the extraction schema, the photo signed-URL decision, the four-layer auth, the `i18n/`
+dictionaries), `worker/` (FastAPI OCR + Presidio redaction + Claude extraction + the dormant cover
+generator), `android/` (the Capacitor native shell), `supabase/migrations/` (`0001`…`0023`),
+`docs/` (ARCHITECTURE, GO_LIVE_CHECKLIST, STORE_PRIVACY, PLAY_LAUNCH, NATIVE_TODO, CAPACITOR),
+`SECURITY.md` (adversarial-review findings), web/worker + Android CI workflows, and a commit history
+across Phases 1–5 plus extensive post-launch work. Branding is single-source in
+`src/config/brand.ts` (a rename is a one-file change).
