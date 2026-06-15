@@ -154,12 +154,19 @@ The POC proves *the pipeline and the two safety patterns*; the MVP proves *produ
 6. The boundary is visible in every workflow: the **Code** node owns the redaction/validation/
    routing/consent decision; the **Claude** node (workflow 2) only advises.
 
-## 6. Demo recording
+## 6. Demo — the live product the POC models
 
-> **Screen recording (2–5 min):** _[link to be added — Loom/YouTube unlisted]_
-> Shows: raw text → redaction + boundary assert → Claude's suggestion on redacted text → schema
-> validate → the admin correcting the type and publishing → the consent gate withholding the
-> original.
+A screen recording of the **live MVP** at [kita-connect.cloud](https://kita-connect.cloud), the
+production system these workflows mirror. It walks the member-facing result of the
+capture → redact → suggest → confirm → publish pipeline: a published **Rückblick** (reflection) with
+its structured weekly summary, the **calendar** with an active ICS subscription, and an **Info** post
+showing a photographed board extracted into structured content with an admin **take-down** control.
+
+![Aushang live demo — feed, calendar/ICS, and a structured Info post on kita-connect.cloud](poc_screenshots/demo.gif)
+
+> The four importable `*.workflow.json` files (above) are the **no-code POC** of this same
+> "advise → confirm → route" logic; the GIF is the **productionised MVP** it leads to. An end-to-end
+> simulation of every workflow lives in [`../simulation/`](../simulation/) — run `node simulation/run.js`.
 
 (The four importable flows are the `*.workflow.json` files in this folder; screenshots of each
 running in n8n are in [`poc_screenshots/`](poc_screenshots/) and shown in the gallery above.)
