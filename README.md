@@ -10,7 +10,7 @@ are enforced by architecture, not policy.
 
 **Live:** [kita-connect.cloud](https://kita-connect.cloud) (invite-only; live & in real-world
 testing) · **[MVP source](https://github.com/eugnmueller-87/DIGITNEWS)** ·
-**Presentation:** [`presentation.html`](presentation.html) (open in a browser)
+**Presentation:** [`presentation.html`](https://htmlpreview.github.io/?https://raw.githubusercontent.com/eugnmueller-87/final-project-eugen/main/presentation.html) (open in a browser)
 
 ---
 
@@ -71,7 +71,7 @@ Phases (Build → POC → Pilot → Multi-org → Channel) · timeline + milesto
 commercialisation model (per-org SaaS via a channel, self-serve as proof).
 
 ### 7. Presentation — 🟡 HTML done; PDF export pending
-[`presentation.html`](presentation.html) — 11-slide self-contained deck (keyboard/swipe nav),
+[`presentation.html`](https://htmlpreview.github.io/?https://raw.githubusercontent.com/eugnmueller-87/final-project-eugen/main/presentation.html) — 11-slide self-contained deck (keyboard/swipe nav),
 also outlined in [`presentation_outline.md`](presentation_outline.md) with Q&A prep.
 - 🟡 **You add:** export to `presentation.pdf` (browser → Print → Save as PDF) if a PDF is required.
 
