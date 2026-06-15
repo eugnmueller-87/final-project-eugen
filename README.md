@@ -37,6 +37,12 @@ decision; the **Claude** node only advises.
 *(Optional: a 2–5 min screen recording link can be added to the doc; capture screenshots into
 `poc/poc_screenshots/`.)*
 
+> **End-to-end simulation:** [`simulation/`](simulation/) is a zero-dependency Node.js harness that
+> simulates **every** project workflow on mock data with **no live infrastructure** — the core
+> capture→publish pipeline, onboarding, delivery (digest/ICS/push), privacy gates, cross-org
+> isolation, and the four n8n POC workflows (executed node-by-node from their real JSON). Run
+> `node simulation/run.js` → **52 assertions, all green.** See [`simulation/README.md`](simulation/README.md).
+
 ### 3. ROI & Risk Assessment — ✅ done
 [`roi_risk_assessment.md`](roi_risk_assessment.md)
 Build (~€35k, largely sunk — MVP is live) + ongoing (~€8k/yr, dominated by owner time; **~€1.3k/yr
