@@ -1,91 +1,113 @@
-# Use Case Definition — AI Demand Forecasting & Autonomous Procurement
+# Use Case Definition — Aushang: Digitizing the Paper Notice Board
 
-**Project:** SCM Master — an AI decision layer for datacenter hardware procurement
+**Project:** Aushang — a digitization layer for old-school organizations that keep using paper.
 **Author:** Eugen Müller · **Role framing:** AI consultant → builder
-**Live system:** [demo](https://scm-master-production.up.railway.app) · [analytics cockpit](https://scm-power-bi-production.up.railway.app) · [code](https://github.com/eugnmueller-87/SCM-Master)
+**Live system:** [kita-connect.cloud](https://kita-connect.cloud) (live, in real-world testing) · [code](https://github.com/eugnmueller-87/DIGITNEWS)
 
 ---
 
 ## 1. Business problem statement
 
-**The problem:** A cloud/hosting enterprise must get compute capacity (servers, GPUs, memory,
-storage, networking) into its datacenters *before* customers need it — while buying from a chip
-supply chain whose lead times swing unpredictably (memory recently spiked ~4×; advanced-chip
-geopolitics adds shock risk). Two failure modes follow:
+**The problem:** A whole class of small, low-tech organizations — Kitas (daycares), Vereine
+(clubs), Kirchengemeinden (church congregations), Kleingartenkolonien (allotment associations) —
+still run their communication on a **physical paper notice board**. A weekly meal plan, an event
+flyer, a lice warning, a closure notice gets pinned to a cork board in the hallway. This works for
+the people who walk past it every day and fails everyone else:
 
-- **Static reorder points break.** A reorder rule tuned for a 14-day lead time stocks out when the
-  lead time jumps to 45. A late GPU shipment = unservable customer demand = lost revenue.
-- **Over-correcting ties up cash.** Buying early "to be safe" across a ~€640M/year spend base locks
-  up working capital and warehouse space.
+- **Parents who didn't see the board miss things** — the trip on Thursday, the Kita is closed
+  Friday, the lice notice. There is no feed, no calendar, no reminder.
+- **Digitizing normally means changing the org's process.** The off-the-shelf answer is "adopt an
+  app / a portal / a newsletter tool" — which means the staff now maintain a second system, retype
+  everything, and learn software. Small orgs with one overworked admin **won't** do this, so they
+  stay on paper.
+- **The information is sensitive and local.** Notices name children, parents, phone numbers, dates.
+  Pushing photos of a Kita's board into a generic cloud tool is a privacy problem these orgs are
+  (rightly) nervous about.
 
-The team plans in spreadsheets with no view of *why* a forecast missed, no defensible "what should
-this part actually cost," and no way to see committed warehouse capacity before ordering more.
+The result is a digital divide: the organizations least able to adopt software are the ones whose
+members most need the information to be reachable.
 
-**For whom:** the procurement function of a **large cloud/hosting enterprise (~5,000 employees,
-IONOS-scale, DACH)** — and specifically the procurement lead, demand/capacity planner, finance, and
-datacenter ops.
+**The one idea:** *the LLM advises, deterministic code decides.* An AI reads a photograph of the
+board and **proposes** structure (what kind of notice, the dates, the meal plan); a human admin
+**confirms** before anything is published; tested code does the routing, the calendar, the
+privacy enforcement. The AI never publishes on its own.
 
-## 2. Company profile
+**For whom:** the **administration and members of a small, low-tech organization** — concretely, in
+the live pilot, a **Kita**: the Kita lead/admin (who photographs the board), and the parents and
+staff (who get a private feed, calendar, and digest). The design generalizes to any org with a
+physical board.
+
+## 2. Company / organization profile
 
 | | |
 |---|---|
-| **Industry** | Cloud / hosting & datacenter infrastructure (DACH, Microsoft-365 ecosystem) |
-| **Size** | Large enterprise — ~5,000 employees |
-| **Spend profile** | ~€640M/year managed spend; IT/cloud-heavy (servers, processors, memory, storage, networking, power) |
-| **Current state** | Spreadsheet forecasts; static reorder points; ERP/P2P (e.g. Coupa/SAP) for transactions but no demand intelligence; no should-cost capability; planning disconnected from live warehouse capacity |
+| **Sector** | Small community organizations — Kitas, Vereine, Kirchengemeinden, Kleingärten, small businesses (DACH, German-language) |
+| **Size** | Very small — typically one admin and tens-to-low-hundreds of members per org; the tool is **multi-tenant** so one operator serves many such orgs |
+| **Current state** | A **physical paper notice board**. No feed, no calendar, no digest. Communication is "walk past the board." Any digitization attempt has so far meant changing the process (a portal/app the staff must maintain), which these orgs resist |
+| **Constraint that defines the product** | The org's process **must not change.** They keep pinning paper to the board; the only new action is *one admin photographing it from inside the tool.* "Digitalisierung ohne Prozessänderung." |
+| **Privacy sensitivity** | High — notices contain children's names, parents' contacts, dates. EU/DACH data-protection expectations are strict and the orgs are privacy-anxious by nature |
 
 ## 3. Proposed AI solution
 
-A **decision layer** on top of the operational system that follows one rule end-to-end —
-**"the LLM advises, deterministic code decides."**
+A **capture → review → publish pipeline** built on one rule end-to-end — **"the LLM advises,
+deterministic code decides."** The admin photographs the board; the system turns the photo into a
+private, structured, privacy-safe digital feed *that the admin confirms before anyone sees it.*
 
 | Component | AI system type | What the AI does | What deterministic code does |
 |---|---|---|---|
-| **Demand forecasting** | Time-series **prediction** + a per-SKU **classifier** | Classifies each SKU's demand pattern (Syntetos–Boylan) and routes it to the right estimator | Computes run-rate / TSB forecast, service-level safety stock, reorder point |
-| **Procurement copilot** | LLM **automation** + reasoning | Reads live signals, proposes a confidence/decision/rationale per buy | Decides supplier, quantity, price, and place/stage/escalate via a tested gate |
-| **Should-cost engine** | Deterministic **recommendation** | (Optional) reads a quote PDF into a BOM | Rebuilds cost from commodity-indexed components → defensible cost floor |
-| **Analytics cockpit** | **Generation** (narrative) over deterministic facts | Narrates a short read *over* already-computed findings, on demand | Computes the findings (concentration/HHI, weeks-of-cover, TCO inversion) |
+| **OCR** | **Perception** (vision → text) | Tesseract reads the German text off the deskewed photo | Deterministic preprocessing (OpenCV deskew), language-pinned OCR |
+| **PII redaction** | **Classification / NER** (local, on-device) | Presidio + spaCy detect names/contacts as candidate PII | A German regex pack catches phone/email/IBAN/birthdate at confidence 1.0; **fail-closed** masking to `[NAME_1]` placeholders; the only text that leaves the box is redacted |
+| **Content extraction** | LLM **structured extraction** | Reads the *redacted* text, **suggests** a content type and pulls dates / a meal plan / events into a schema | Validates the LLM output against a strict JSON schema; on failure routes to the manual path — **never auto-publishes** |
+| **Routing & publish** | *(no AI)* deterministic | — | The admin **confirms** the content type; a security-definer RPC routes by the *confirmed* value to feed / calendar / ICS / category library and flips the post to `published` |
 
-The **AI part** is the demand model + reliability scoring + advisory copilot; the **automation part**
-is the reorder arithmetic, sourcing, and approval workflow. The system is explicit about which is
-which — the LLM never moves money on its own.
+The **AI part** is the perception (OCR), the local PII classification, and the advisory extraction;
+the **decision part** is the schema validation, the human confirmation gate, and the deterministic
+routing/privacy enforcement. The system is explicit about which is which — **the LLM never makes a
+notice visible to a member on its own, and never sees a raw photo or un-redacted PII.**
 
 ## 4. Key stakeholders
 
 | Stakeholder | Affected / decides / uses | Interest |
 |---|---|---|
-| **CEO (sponsor)** | Decides the investment | A defensible yes/no — hype vs. value, no science project |
-| **Head of Procurement** | Primary user | Buy the right parts at the right time despite moving lead times |
-| **Demand / capacity planner** | Primary user | Trustworthy demand numbers + *why* a forecast missed |
-| **Finance** | Affected / approves spend | Protect working capital and margin; avoid over-ordering and stockouts |
-| **Datacenter ops** | Affected (downstream) | No capacity gaps — parts land before customer demand |
-| **Suppliers** | Affected | Fair, contract-based sourcing; not bypassed by a black-box model |
+| **Operator (you)** | Decides the product; provisions orgs | A privacy-defensible tool small orgs will actually adopt without changing their process |
+| **Kita admin / org lead** | Primary user | Get the board's information to every parent in minutes, by *photographing it* — no retyping, no second system to maintain |
+| **Parents / members** | Primary beneficiaries | A private feed, a shared calendar (ICS), an email digest, "new since last visit" — never miss a closure or a trip again |
+| **Staff** | Affected | Their notices reach families reliably; less "didn't you see the board?" |
+| **The data subjects on the notices** (children, named parents) | Affected (privacy) | Their PII is masked **locally before any AI call** and never published unredacted |
+| **Data Protection Officer / parent council** | Affected / approves | A design where raw photos never leave the org's infra and no un-redacted PII reaches any external AI |
 
 ## 5. Success criteria (measurable)
 
-1. **Forecast accuracy** — reduce per-SKU forecast error (WMAPE) on the worst categories by a
-   meaningful margin vs. the current spreadsheet baseline, **measured on a walk-forward backtest
-   holdout** (target: the 30–50% error-reduction band the literature reports; base case <10%).
-2. **Stockout avoidance** — zero stockouts on lead-time-volatile SKUs over the pilot window, with
-   service-level safety stock sized to the chosen service level (default 95%).
-3. **Working-capital / cost discipline (secondary)** — no over-ordering past committed warehouse
-   capacity (enforced by a server-side guard), and a quantified should-cost gap surfaced on costed
-   products as negotiation headroom.
-4. **Trust / safety** — 100% of money-moving AI advice passes a deterministic gate; proven by a
-   regression test suite (the agent-safety harness) that the gate refuses hostile advice.
+1. **Process unchanged, time-to-publish low** — an admin turns a photographed notice into a
+   published, structured post in **a single review pass** (confirm the type, tap to correct, edit,
+   publish). Target: the admin's only new habit is *photograph the board*; everything else is
+   confirmation, not data entry.
+2. **Privacy by construction holds** — **0 raw photos** and **0 un-redacted PII** ever reach the
+   external LLM, enforced by the architecture (local redaction upstream of the call; PII columns
+   `REVOKE`'d from members at the DB layer), not by policy. Verified by the data-flow boundary and
+   the column-grant tests.
+3. **Nothing publishes without a human** — **100%** of member-visible posts pass through explicit
+   admin confirmation; routing reads only the admin-confirmed `content_type` (NULL until
+   confirmed), never the LLM's suggestion. Proven by the `publish_post` RPC being the sole path to
+   member visibility.
+4. **Reach** — members get the information through channels the board never had: a private feed,
+   a subscribable calendar (ICS), an email-on-publish digest, web push, and per-category "new since
+   last visit" counts. Target in the pilot: parents report they *stop missing* closures/events.
 
 ## 6. Out-of-scope boundaries
 
 The solution explicitly does **not**:
 
-- **Place orders autonomously without a human** above defined confidence/spend thresholds — every
-  material buy is staged for approval.
-- **Replace the ERP/P2P system** (Coupa/SAP) — it runs *alongside* as the intelligence layer and
-  proposes requisitions back, rather than owning invoicing/payment.
-- **Let the LLM decide supplier, price, or quantity** — those are deterministic; the LLM only advises.
-- **Forecast genuinely intermittent/project-batch demand as a point forecast** — those SKUs are
-  managed by safety stock, not by pretending to predict the spike.
-- **Process real personal data** — the system handles procurement/asset data; user PII is limited to
-  internal login accounts (see [GDPR documentation](compliance/gdpr_documentation.md)).
-- **Use a commercial forecasting platform** (o9/ToolsGroup/Oracle) in the pilot — open-source only,
-  to avoid vendor lock-in and keep the pilot lean.
+- **Publish anything autonomously.** No notice becomes member-visible without an admin confirming
+  the content type and pressing publish. The LLM's suggestion is a pre-fill, never a decision.
+- **Send raw images or un-redacted PII to any external service.** PII is detected and masked
+  **locally** before the only external AI call; raw photos never leave the org's infrastructure.
+  There is deliberately **no code path** that would send a raw image anywhere.
+- **Replace the org's process.** It does not ask the org to stop using its paper board, retype
+  notices, or maintain a second system. The board stays; one admin photographs it.
+- **Offer public signup or a public surface.** It is **invite-only / operator-provisioned** —
+  accounts are created by an operator/admin, not self-service. No public feed.
+- **Act as a news/RSS reader** despite the repo's legacy name (`DIGITNEWS`). It processes **only
+  what the org already pinned to its own board** — not the open internet.
+- **Claim official ratings.** Where the AI estimates (e.g. a meal plan's Nutri-Score), the value is
+  schema-forced to be flagged an **estimate**, never presented as an official score.

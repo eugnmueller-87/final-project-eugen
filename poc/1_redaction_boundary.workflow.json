@@ -1,0 +1,106 @@
+{
+  "name": "Aushang — POC 1 · Local Redaction Boundary",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-700, 320]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "ocr_text", "type": "string", "value": "Speiseplan KW 30\nMo: Nudeln mit Tomatensauce\nDi: Kartoffelsuppe\nAushang vom Elternbeirat. Bei Fragen: Frau Meier, Tel. 0151 23456789, anna.meier@example.de\nMax Mustermann, geb. 12.03.2020, bringt Kuchen mit." }
+          ]
+        },
+        "options": {}
+      },
+      "id": "22222222-2222-4222-8222-222222222222",
+      "name": "Mock OCR Text (raw, from worker)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-480, 320],
+      "notes": "Stands in for the Tesseract OCR output INSIDE the worker. This raw text contains PII (a name, phone, email, a child's name + birthdate). It must NEVER leave the box un-redacted. In the MVP this string never exists outside the VPS."
+    },
+    {
+      "parameters": {
+        "jsCode": "// LOCAL REDACTION (no AI, no external call) — mirrors worker/redaction.py.\n// Deterministic PII (phone, email, IBAN, birthdate-near-'geb.') is caught by a\n// regex pack at confidence 1.0 and masked to stable placeholders. FAIL-CLOSED:\n// when in doubt, mask. The ONLY text allowed past this node is the redacted text.\nconst raw = $json.ocr_text || '';\nconst found = [];\nlet text = raw;\nlet n = { TEL: 0, MAIL: 0, IBAN: 0, GEBURT: 0, NAME: 0 };\n\nfunction mask(re, kind) {\n  text = text.replace(re, (m) => {\n    n[kind] += 1;\n    const ph = `[${kind}_${n[kind]}]`;\n    found.push({ kind, placeholder: ph, original_len: m.length });\n    return ph;\n  });\n}\n\n// Deterministic, confidence 1.0 — German patterns.\nmask(/[\\w.+-]+@[\\w-]+\\.[\\w.-]+/g, 'MAIL');\nmask(/\\b(?:\\+49|0)[\\d\\s\\/-]{6,}\\d/g, 'TEL');\nmask(/\\bDE\\d{2}[\\s]?(?:\\d{4}[\\s]?){4}\\d{2}\\b/g, 'IBAN');\n// birthdate near 'geb.'\nmask(/geb\\.?\\s*\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}/gi, 'GEBURT');\n// A simple name guess: 'Firstname Lastname' before a comma/phone context.\n// (In the MVP this is Presidio+spaCy NER, fail-closed above a threshold; here a\n//  small heuristic stands in. LOCATION is deliberately NOT masked — on a board the\n//  'locations' are the org's own name/town, not PII.)\nmask(/\\b(Frau|Herr)\\s+[A-ZÄÖÜ][a-zäöüß]+/g, 'NAME');\nmask(/\\b[A-ZÄÖÜ][a-zäöüß]+\\s+[A-ZÄÖÜ][a-zäöüß]+(?=,)/g, 'NAME');\n\nreturn [{ json: {\n  redacted_text: text,            // <-- the ONLY thing allowed to leave the box\n  redactions_found: found.length, // count only; originals stay local\n  redaction_kinds: n,\n  // NOTE: we DO NOT pass `raw` forward. The boundary is enforced here.\n  contains_at_symbol: text.includes('@'),  // sanity assert below\n  contains_digits_run: /\\d{6,}/.test(text)\n}}];"
+      },
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Local Redaction (no AI)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-260, 320],
+      "notes": "THE PRIVACY BOUNDARY. Runs entirely locally — no external call. Masks PII to [TEL_1], [MAIL_1], [NAME_1], … and forwards ONLY the redacted text. In the MVP this is Presidio + spaCy + a German regex pack, fail-closed (worker/redaction.py)."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ASSERT the boundary held before anything is allowed to be 'sent to the LLM'.\n// If any raw PII pattern survived, FAIL CLOSED — do not proceed.\nconst t = $json.redacted_text || '';\nconst leaks = [];\nif (/[\\w.+-]+@[\\w-]+\\.[\\w.-]+/.test(t)) leaks.push('email');\nif (/\\b(?:\\+49|0)[\\d\\s\\/-]{6,}\\d/.test(t)) leaks.push('phone');\nif (/\\bDE\\d{2}/.test(t)) leaks.push('iban');\nif (/geb\\.?\\s*\\d/.test(t)) leaks.push('birthdate');\nconst safe = leaks.length === 0;\nreturn [{ json: {\n  redacted_text: t,\n  redactions_found: $json.redactions_found,\n  boundary_ok: safe,\n  leaked_patterns: leaks,\n  verdict: safe ? 'SAFE TO SEND TO LLM (redacted only)' : 'BLOCKED — raw PII detected, fail closed'\n}}];"
+      },
+      "id": "44444444-4444-4444-8444-444444444444",
+      "name": "Boundary Assert (fail-closed)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-40, 320],
+      "notes": "Belt-and-braces: re-checks the redacted text for any surviving PII pattern. boundary_ok=false would stop the pipeline (fail-closed). This makes the privacy invariant VISIBLE: only redacted text proceeds."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.boundary_ok }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "55555555-5555-4555-8555-555555555555",
+      "name": "Boundary OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [180, 320],
+      "notes": "TRUE = redacted text is clean -> proceed to the LLM (see POC 2). FALSE = PII survived -> block (fail-closed). On the default mock data this is TRUE: all PII was masked."
+    },
+    {
+      "parameters": {},
+      "id": "66666666-6666-4666-8666-666666666666",
+      "name": "→ Send REDACTED text to LLM",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [420, 200],
+      "notes": "This is the ONLY text that ever crosses to the external LLM (Anthropic). No raw image, no un-redacted PII. Continues in POC 2."
+    },
+    {
+      "parameters": {},
+      "id": "77777777-7777-4777-8777-777777777777",
+      "name": "BLOCK (fail-closed, no external call)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [420, 440],
+      "notes": "If redaction somehow left PII, nothing is sent externally. The MVP routes such a post to the manual path instead."
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Mock OCR Text (raw, from worker)", "type": "main", "index": 0 }]] },
+    "Mock OCR Text (raw, from worker)": { "main": [[{ "node": "Local Redaction (no AI)", "type": "main", "index": 0 }]] },
+    "Local Redaction (no AI)": { "main": [[{ "node": "Boundary Assert (fail-closed)", "type": "main", "index": 0 }]] },
+    "Boundary Assert (fail-closed)": { "main": [[{ "node": "Boundary OK?", "type": "main", "index": 0 }]] },
+    "Boundary OK?": {
+      "main": [
+        [{ "node": "→ Send REDACTED text to LLM", "type": "main", "index": 0 }],
+        [{ "node": "BLOCK (fail-closed, no external call)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}

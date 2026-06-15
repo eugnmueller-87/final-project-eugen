@@ -1,65 +1,85 @@
-# Presentation Outline — SCM Master
+# Presentation Outline — Aushang
 
-> The final slide deck (`presentation.pdf` / `.pptx`) follows this structure. This outline is the
-> speaker plan; export to slides for submission. ~10–12 slides, ~10 min + Q&A.
+> The slide deck ([`presentation.html`](presentation.html)) follows this structure — 11 slides,
+> ~10 min + Q&A. Export to `presentation.pdf` (browser → Print → Save as PDF) if a PDF is required.
 
 ---
 
-**1. Title** — SCM Master: an AI decision layer for datacenter hardware procurement.
-Name, the consultant→builder framing, the two live URLs.
+**1. Title** — Aushang: digitizing the paper notice board *without changing the process*. Name, the
+consultant→builder framing, the live URL (kita-connect.cloud), the "live & in real-world testing"
+badge.
 
-**2. The problem (30s)** — Cloud/hosting enterprise (~5,000 staff, €640M spend). Chip lead times
-swing; static reorder points break → stockouts; over-ordering ties up cash. Spreadsheets, no "why."
+**2. The problem (30s)** — Small orgs (Kitas, clubs, churches) run on a paper board. Three traps:
+information is trapped (miss the board → miss the closure/trip/lice notice); digitizing normally
+means changing the process (a second system the admin won't maintain); the data is sensitive
+(children, parents, phones). The orgs least able to adopt software are the ones whose members most
+need reachable information.
 
-**3. The use case & who it's for** — AI demand forecasting + a procurement copilot with a dynamic
-reorder point. Stakeholders: CEO (decides), procurement + planners (use), finance + ops (affected).
+**3. The core idea — "the LLM advises, PII is masked first, a human decides"** — the slide that
+carries the project. Two principles, enforced by architecture not policy: (1) **privacy by
+construction** — PII masked *locally before any external call*, raw photos never leave our infra;
+(2) **advises, doesn't decide** — the LLM *suggests*; output is schema-validated; an admin *confirms*
+before publish; routing reads only the confirmed value. *This is the trust story, and what keeps it
+out of EU AI Act High-risk.*
 
-**4. The core idea — "the LLM advises, deterministic code decides"** — the one slide that carries
-the whole project. AI proposes confidence/decision/rationale; tested code decides supplier, qty,
-price, place/stage/escalate. *This is the trust story.*
+**4. The pipeline** — photograph → OCR (Tesseract) → **local redact** (Presidio) → Claude *suggests*
+→ schema-validate → **admin confirms** → `publish_post` routes → feed/calendar/ICS/digest. The only
+text that crosses to the AI is redacted; the only path to a member's screen is an admin publish.
 
-**5. POC demo (no-code) — 2–3 min** — the n8n workflow: signal → Claude advice (JSON) → IF/Set gate
-→ auto-place vs. approval. Flip a threshold live to show the gate route to approval. (Recorded
-fallback ready.)
+**5. POC demo (no-code) — 2–3 min** — the four n8n workflows: (1) redaction boundary + fail-closed
+assert, (2) extract → schema-validate, (3) confirm → route → publish (correct the type live), (4)
+double-gated consent. Each runs on mock data; a Code node owns every decision, Claude only advises.
+Flip a value to show a safety branch route. (Recorded fallback ready.)
 
-**6. MVP demo (stretch) — 1–2 min** — the live system: run the agent, see staged requisitions with
-rationale; the cockpit (Overview/Spend/Forecast with year filters, capacity tile); the New-Order
-flow with the over-order guard refusing (422).
+**6. Privacy, proven** — no raw image, no un-redacted PII anywhere external. Local fail-closed
+redaction; DB column REVOKE (even an admin's browser can't read raw PII); double-gated photo consent
+via signed URL; a build-blocking secret scan. This is the deliverable that distinguishes Aushang.
 
-**7. Trust, proven — the agent-safety harness** — 29 scenarios feed the gate *hostile* advice
-(unapproved supplier, over-cap, prompt injection, garbage JSON) and assert it refuses. Teeth-verified.
-This is what makes "advises/decides" a guarantee, not a slogan.
+**7. MVP demo (stretch) — 1–2 min** — the live system: `/aufnahme` photograph → a `processing` post
+→ the worker OCRs/redacts/extracts → `/review` confirm-and-publish → members see it on `/feed`,
+`/bereiche` (with "new since last visit"), `/kalender`, the ICS subscription, the email digest.
+Invite-only by design — a provisioned demo account on request.
 
-**8. ROI & break-even** — Pilot €43k, year-1 all-in €135k; conservative benefit €150k/yr →
-ROI₁₂ ≈ +11%, ROI₃₆ ≈ +76%; **break-even inside year 1**, driven by one avoided stockout. Honest
-framing: risk reduction + working capital, validated by the pilot, not promised.
+**8. ROI & break-even** — honest framing. MVP already live (validation, not greenfield). ~€1.3k/yr
+cash infra; break-even on infra at ~15 orgs; LLM is cents/org (called once per capture, cheap model,
+redacted text). At €15/org/mo, tens of orgs are cash-positive but don't repay a full solo build
+alone — the lever is a **channel** (association/Träger: one sale, many orgs). Payback is a
+distribution question, not a technology one.
 
-**9. Risk matrix (top 3)** — R2 LLM-on-money (20 → mitigated by the gate + harness), R6 adoption
-(16 → human-in-the-loop + explainability), R1 drift (12 → owner + backtest + can-say-stop).
+**9. Risk matrix (top 3)** — R4 adoption/distribution (16 → built around the blocker + a channel),
+R1 PII leak (15 → local fail-closed redaction + column REVOKEs + adversarial review), R2 LLM
+hallucination (12 → schema-validate + manual path + human confirm + estimate-flagged scores). Full
+8-risk matrix in the ROI/risk doc.
 
-**10. Compliance summary** — EU AI Act: **Limited risk** (decision-support, human-in-the-loop, no
-Annex III) + transparency met. GDPR: B2B data, **no PII to the LLM**; only internal accounts + audit
-stamps; DPIA done, residual risk LOW.
+**10. Compliance summary** — EU AI Act: **Limited risk** (walks the tree: not prohibited, not a
+safety component, no Annex III area — it makes no decision *about a person*; the Kita context is
+communication, not education-access; transparency + human oversight met). GDPR: processes real
+personal data, so the design carries it — raw photos stay in EU infra, **redacted text only** to the
+LLM, PII columns REVOKE'd, DPIA done, residual LOW–MED, self-service erasure.
 
-**11. Strategic plan** — Phases: POC ✅ → Pilot (10 wk, gated) → Full → Scale. Commercialisation:
-internal capability first (base case that pays for itself), optional SaaS + consulting upside.
-Verdict: 🟡 **run the pilot.**
-
-**12. Close + Q&A** — One line: *a system that lets AI advise and tested code decide — proven on a
-live, compliant, regression-tested build.* Q&A prep below.
+**11. Strategic plan & close** — Build ✅ → POC ✅ → Pilot (live) → Multi-org → Channel.
+Commercialisation: per-org SaaS via an association channel, self-serve as proof. Verdict: 🟢 ship &
+validate, then pursue the channel. One line: *AI advises, PII is masked first, a human decides —
+proven on a live, GDPR-by-construction build.* Q&A prep below.
 
 ---
 
 ## Q&A preparation (anticipated questions)
 
-- **"Why not let the AI just place orders?"** → It's untrustworthy with money; the gate + harness
-  exist precisely so it can't. Show the over-order 422 / escalate-on-garbage.
-- **"Is 57% forecast accuracy good?"** → It's the all-SKU blend incl. unforecastable lumpy items;
-  the point is *routing* + safety stock, and the honest lumpy-demand finding. Per-category/year is
-  better; the pilot validates on real SKUs.
-- **"Why Limited risk, not High?"** → Walk Step 3: no Annex III area, not a safety component,
-  decisions are about purchases not people, human-in-the-loop.
-- **"What about data sent to Anthropic?"** → Procurement signals only — no personal data crosses
-  that boundary; show the data-flow map.
-- **"What if the pilot fails?"** → That's a valid, cheap outcome — the gate to proceed is explicit;
-  €43k buys a real answer.
+- **"Does a child's name get sent to the AI?"** → No. PII is masked **locally, fail-closed, before**
+  the only external call — the LLM sees `[NAME_1]`, never the name. Show the data-flow map and the
+  redaction boundary workflow.
+- **"Why Limited risk, not High?"** → Walk Step 3: not a safety component, no Annex III area, it
+  makes **no decision about a person** (not education-access — it's a parent communication tool,
+  doesn't assess any child), human-in-the-loop.
+- **"What if the AI mis-reads the notice?"** → Schema validation catches malformed output → manual
+  path; the admin confirms every type before publish; bad dates go to `ambiguous_dates[]`, never
+  invented. Nothing wrong auto-publishes.
+- **"The LLM is US-hosted — isn't that a GDPR problem?"** → Only **redacted** text crosses (no PII,
+  no raw image), and the key lives on the worker only. For strict EU residency, the extraction module
+  swaps to an EU LLM (Mistral) — a one-module change; nothing else moves.
+- **"Will small Kitas actually adopt this?"** → It's built around that exact blocker: **no process
+  change** — they keep their paper board, one admin photographs it. The honest risk is distribution,
+  answered by a channel (association/Träger), not by single-Kita self-serve.
+- **"Is it really live?"** → Yes — kita-connect.cloud, a first Kita testing it; invite-only by design
+  because it handles real data. Provisioned demo account on request.

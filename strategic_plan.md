@@ -1,8 +1,9 @@
-# Strategic Deployment & Commercialisation Plan — SCM Master
+# Strategic Deployment & Commercialisation Plan — Aushang
 
-**Company:** Cloud/hosting enterprise (~5,000 employees) · **Investment verdict:** 🟡 **Run a pilot**
-(not "invest at full scale," not "wait") — the magnitude is unproven on our SKUs, but the pain is
-acute now and a working PoC already exists.
+**Customer:** small community organizations (Kitas, Vereine, Kirchengemeinden) · **Status verdict:**
+🟢 **Ship & validate the pilot, then pursue a channel.** The MVP is **already live** at
+[kita-connect.cloud](https://kita-connect.cloud) with a first Kita in real-world testing — the
+technology and privacy story are proven; the open question is **distribution**, not whether it works.
 
 ---
 
@@ -10,82 +11,83 @@ acute now and a working PoC already exists.
 
 | Phase | What | State |
 |---|---|---|
-| **0 — Foundation** | Data model, services, dashboard, agent-safety harness | ✅ Done (the MVP) |
-| **1 — POC** | No-code n8n workflow proving the AI-advises/code-decides pattern | ✅ Done (see POC doc) |
-| **2 — Pilot** | Validate on **real SKUs**, one worst category first (Networking), walk-forward holdout, named model owner | ▶ Next |
-| **3 — Full deployment** | All categories, integrated with ERP/P2P, production hardening, rollout to the procurement team | Planned |
-| **4 — Scale / expansion** | Supplier-risk monitoring, GenAI copilot, multi-site, productise externally | Optional |
+| **0 — Build** | Schema + RLS, auth, the capture → OCR → redaction → LLM → review → publish pipeline, calendar/ICS, email/push, PWA, GDPR/deletion flows | ✅ Done (the MVP, Phases 1–5) |
+| **1 — POC** | No-code n8n workflows proving the "AI suggests / code & human decide" pattern + the privacy boundary | ✅ Done (see POC doc) |
+| **2 — Pilot** | One real Kita using it on its real board; tune redaction, validate the review flow, confirm parents stop missing things | ▶ In progress (live now) |
+| **3 — Hardening & multi-org** | Worker behind HTTPS, regenerated DB types, redaction-recall test, model card, retention schedule; onboard a handful of orgs | Next |
+| **4 — Channel scale** | Sell *through* a Kita-association / Träger / municipality; native shell (Capacitor) for app stores; productise self-serve onboarding | Planned |
 
 ## 2. Timeline & milestones
 
 | Phase | Duration | Milestones | Gate to proceed |
 |---|---|---|---|
-| **2 — Pilot** | ~10 weeks | Data wired for 1–2 categories · backtest holdout run · service-level safety stock live · buyer approval loop in use · **accuracy result vs. spreadsheet baseline** | Holdout shows error reduction (target 30–50% band; min: beats baseline) **and** a named model owner |
-| **3 — Full deployment** | ~6 months | Extend to all categories · ERP/P2P sync (Coupa/SAP) · forge-locked prod · team trained · monitoring/alerting | Adoption ≥ target; no stockouts on volatile SKUs; finance signs off on working-capital effect |
-| **4 — Scale** | 6–12 months | Supplier-risk module · copilot rollout · additional sites / business units | Sustained ROI; exec demand for expansion |
+| **2 — Pilot** | ~4–6 weeks (live) | Real board captured weekly · redaction tuned on real notices · review flow used by the real admin · parents subscribed to feed/ICS/digest | The admin uses it unprompted; **parents report they stop missing closures/events**; no PII-leak incident |
+| **3 — Hardening & multi-org** | ~6–8 weeks | Worker fronted with TLS (a `worker.` subdomain) · redaction-recall test on a labelled notice set · per-model card + retention schedule · 3–5 orgs onboarded | Onboarding a new org is self-serve enough for the operator to do in <1 hr; clean security re-review |
+| **4 — Channel scale** | 3–6 months | A signed association/Träger/municipality channel reselling to many orgs · native app shells in the stores · pricing validated | A channel partner committed; per-org marginal cost stays ~cents; CAC via the channel beats self-serve |
 
-**Decision points are explicit:** the pilot can return "stop" (accuracy ≤ baseline or data too poor
-to fix economically) — that is a successful, cheap outcome, not a failure.
+**Decision points are explicit:** the pilot can return "stop/redesign" — if the real admin won't
+adopt the *photograph-the-board* habit, or redaction proves unreliable on real notices, that is a
+cheap, early answer (the MVP is already built; the cost of learning this is near-zero).
 
 ## 3. Go-to-market strategy
 
-This is framed two ways, because the system can be **an internal capability** *or* **a product.**
+This is framed two ways, because the honest finding from the ROI is that **single-org self-serve
+does not repay a full build** — the value unlock is a *channel.*
 
-**Primary (internal capability — the pilot's purpose):**
-- **Target buyers:** the company's own CFO/CPO (the investment decision); users are procurement +
-  planning.
-- **Channel:** internal — sponsored by the procurement function, validated by finance.
-- **Pricing/value model:** cost-avoidance + working-capital release (internal ROI), not a price tag.
-- **Differentiator:** it's *theirs*, tuned to their SKUs and lead-time reality, no per-seat platform
-  fee, no vendor lock-in.
+**Primary (channel-led — the path to payback):**
+- **Target buyers:** **Kita-associations / Träger (operators of many Kitas), church districts,
+  municipalities, allotment federations** — entities that each represent *dozens to hundreds* of
+  small orgs with the identical problem.
+- **Channel:** sell the multi-tenant product to the umbrella body; they roll it out to their member
+  orgs. One sale = many orgs onboarded.
+- **Pricing/value model:** per-org SaaS (€15–25/org/mo) bundled into the association's offering, or a
+  flat per-association licence. The build cost amortizes across the channel's org count.
+- **Differentiator:** **privacy by construction** (no PII to any external AI; raw photos never leave
+  EU infra) is exactly the property a Kita-association's DPO needs to say yes — and **no process
+  change** (just photograph the board) is exactly what overworked Kita admins need to actually adopt.
 
-**Secondary (productised — Phase 4 optional):**
-- **Target buyers:** mid-to-large hardware-heavy operators (cloud/hosting, datacenter, MSPs) facing
-  the same chip-lead-time volatility.
-- **Channel:** direct (founder-led/consulting-led), later a marketplace listing (Railway/cloud) or
-  partner via ERP integrators.
-- **Pricing model:** **SaaS** (tiered by SKU/spend volume) with an **implementation/consulting**
-  attach for the data wiring — the high-value, defensible part.
-- **Key differentiator vs. alternatives:** the big platforms (o9, ToolsGroup, Oracle) cost
-  €50k–250k+/yr and are heavy; this is lean, **demand-pattern-aware** (routes lumpy SKUs correctly),
-  and built on the auditable **"LLM advises, deterministic code decides"** boundary — a trust story
-  enterprises actually need for AI on money.
+**Secondary (direct self-serve — proof + early revenue, not the payback engine):**
+- **Target buyers:** individual Kitas/Vereine that find it directly.
+- **Channel:** direct sign-up, operator-provisioned.
+- **Pricing model:** €15/org/mo. Useful for the reference story and early cash, but the ROI shows
+  this alone won't repay a full build at small org counts — it feeds the channel pitch.
 
 ## 4. Stakeholder communication plan
 
 | Stakeholder | What they need to hear | Who communicates | When |
 |---|---|---|---|
-| **CEO / CFO** | The 🟡 pilot recommendation, the ~€43k pilot cost, break-even inside year 1, and the explicit "can say stop" gate | Project sponsor / consultant | Kickoff + pilot-gate review |
-| **Head of Procurement** | This augments, doesn't replace them; human keeps the pen; quick win on the worst category | Project lead | Kickoff + weekly during pilot |
-| **Planners (users)** | How to read the forecast, the "why it missed" diagnostic, the approval workflow | Project lead + champion | Training before pilot use |
-| **Finance** | Working-capital mechanism, conservative benefit framing, the audit trail | Consultant + finance partner | Pilot design + gate review |
-| **Legal / DPO** | Limited-risk EU AI Act classification, GDPR DPIA, no PII to the LLM | Consultant | Before pilot go-live |
-| **IT / Security** | Forge-lock, role-gating, SAST/CVE gates, hosting region | Engineer | Before pilot go-live |
-| **Datacenter ops** | Fewer capacity gaps; what changes in their inbound visibility | Project lead | Phase 3 rollout |
+| **Kita admin (pilot user)** | "Nothing about your process changes — you photograph the board, confirm what the AI suggests, publish. No retyping, no second system." | Operator | Onboarding + weekly during pilot |
+| **Parents / members** | "A private feed, a shared calendar you can subscribe to, an email when something new is posted — you'll stop missing closures." | The Kita admin + the app's onboarding | At invite |
+| **Kita association / Träger (channel buyer)** | The privacy-by-construction story (DPO-ready), the no-process-change adoption story, the per-org economics, the live reference Kita | Operator (founder-led sale) | Channel pitch |
+| **DPO / parent council** | No raw photos leave EU infra; **no PII to the external AI** (redacted locally first); double-gated photo consent; deletion/erasure flows; EU AI Act = Limited risk | Operator | Before a channel go-live |
+| **Operator (you)** | The honest ROI: cheap to run, proven feature, payback depends on a channel | — | Continuous |
 
 ## 5. KPIs per phase
 
 | Phase | KPI | Target |
 |---|---|---|
-| **Pilot** | Forecast error (WMAPE) vs. spreadsheet baseline | ↓ meaningfully (30–50% band ideal; ≥ beat baseline to proceed) |
-| **Pilot** | Stockouts on volatile SKUs | 0 over the window |
-| **Pilot** | Buyer approval-loop usage | ≥ 80% of proposals reviewed in-tool |
-| **Pilot** | Gate safety | 100% of money-moving advice passes the deterministic gate (harness green) |
-| **Full** | Adoption | ≥ 70% of planners using it as the primary tool |
-| **Full** | Working-capital release | quantified €, validated by finance |
-| **Full** | Over-order incidents | 0 (capacity guard enforced) |
-| **Scale** | Sustained ROI | ≥ the year-1 base case, growing |
+| **Pilot** | Admin adoption | The real admin captures the board unprompted, weekly |
+| **Pilot** | Member benefit | Parents report they stop missing closures/events (qualitative) |
+| **Pilot** | Privacy | **0** PII-leak incidents; redaction tuned so ordinary notices aren't over-masked |
+| **Hardening** | Onboarding effort | A new org live in **< 1 hr** of operator time |
+| **Hardening** | Robustness | Schema-validation pass rate measured; manual-path fallback never blocks |
+| **Channel** | Distribution | ≥ 1 association/Träger channel signed |
+| **Channel** | Unit economics | Per-org marginal cost ~cents; channel CAC < self-serve CAC |
 
 ## 6. Commercialisation model
 
-**Choice: start as an internal tool; optionally productise as SaaS + consulting in Phase 4.**
+**Choice: run the live pilot to a clean reference, then commercialise through a channel
+(association/Träger/municipality), with direct self-serve as a secondary funnel.**
 
-**Justification:** The honest, evidence-based path is *prove it internally first* — ~64% of full AI
-bets stall in pilot, so betting on a product before the value is proven on real SKUs would repeat
-that mistake. The internal pilot is cheap (~€43k), de-risks the geopolitical lead-time problem now,
-and produces the one thing a product needs: a **real accuracy number on real data**, not "85% on
-synthetic." If the pilot validates, the same system — already built, already compliant, already
-safety-tested — becomes a credible **SaaS + implementation-consulting** offering for the many
-hardware-heavy operators with the identical problem, differentiated by being lean, demand-pattern-
-aware, and trustworthy-by-architecture. Productising is the upside; the internal capability is the
-base case that pays for itself.
+**Justification:** The ROI is honest that **self-serve single-Kita subscription does not repay a
+full solo build at small scale** — managed infra is cheap (~€1.3k/yr cash) and the feature is proven
+and live, but tens of €15/mo orgs don't amortize a €35k build. The leverage is **distribution**: a
+single Kita-association or Träger represents dozens-to-hundreds of orgs with the *identical* problem,
+the *identical* privacy anxiety the design already answers, and the *identical* "won't change our
+process" adoption blocker the design is built around. Selling the multi-tenant product *through* that
+umbrella turns one sale into many orgs and amortizes the build across the channel. The live pilot is
+cheap and produces the one thing a channel pitch needs: a **real Kita using it on a real board, with
+a real DPO-ready privacy story** — not a mockup. If no channel materialises, the product still stands
+as a live, compliant, reference build whose return is the credential and the option value, with
+self-serve covering its cash cost. Productising the channel is the upside; the live, privacy-correct
+pilot is the proof that earns it.

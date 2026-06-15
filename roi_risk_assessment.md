@@ -1,104 +1,129 @@
-# ROI & Risk Assessment — AI Demand Forecasting & Procurement Copilot
+# ROI & Risk Assessment — Aushang (Notice-Board Digitization)
 
-**Company:** Cloud/hosting enterprise (~5,000 employees, IONOS-scale) · **Managed spend:** ~€640M/yr
-All figures are **planning estimates in EUR**, assumptions stated. Sourced from the project's
-cost analysis and market research (see [strategic_plan.md](strategic_plan.md) for citations).
+**Organization:** small community orgs (Kitas, Vereine, Kirchengemeinden) · **Operating model:**
+one operator (you) runs a **multi-tenant** SaaS serving many such orgs.
+All figures are **planning estimates in EUR**, assumptions stated. Because the customer is a small
+non-profit org, the ROI is framed **two ways**: (A) the *org's* return on adopting it, and (B) the
+*operator's* return on building/running it as a product.
 
 ---
 
 ## Part A — ROI Analysis
 
-### A.1 Upfront cost (Pilot, Phases 0–3, ~9–10 weeks)
+### A.1 Upfront cost (build, already largely sunk)
+
+The MVP **already exists and is live** — this is validation/rollout cost, not a greenfield build.
+Figured here as what the build *would* cost to reproduce, so the ROI is honest about the investment.
 
 | Item | Assumption | EUR |
 |---|---|---|
-| Data/ML engineer | 0.8 FTE × 9 wk × €700/day | 25,000 |
-| Procurement SME | 0.3 FTE × 9 wk × €700/day | 9,500 |
-| Exec sponsor + finance | light, ~3 days total | 2,000 |
-| Cloud compute (pilot scale) | small VM + storage, ~€300/mo × 3 | 900 |
-| Forecasting tooling | open-source (Prophet / statsforecast / sklearn) | 0 |
-| BI licences | Power BI Pro, 3 seats × €10/mo × 3 | 90 |
-| API hosting | existing Railway-style host | 60 |
-| Team training (pilot) | workshops, docs | included below |
-| Contingency (~15%) | | 5,500 |
-| **Pilot total** | | **≈ 43,000** (range €35k–€55k) |
+| Full-stack build (web app) | 1 FTE × ~8 wk × €600/day | 24,000 |
+| OCR/redaction worker (Python ML) | included in the above 8 wk (heaviest module) | — |
+| Security hardening + adversarial review | ~1 wk | 3,000 |
+| Compliance docs (GDPR one-pager, AVV, Datenschutz) | ~0.5 wk | 1,500 |
+| Design (the "Tafel" mobile redesign) | ~0.5 wk | 1,500 |
+| Domain + initial infra setup | one-off | 200 |
+| Contingency (~15%) | | 4,500 |
+| **Build total** | | **≈ 35,000** (range €28k–€45k) |
 
-*Why lean:* the PoC, data model, metrics and dashboard **already exist** — the pilot is validation,
-not greenfield build.
+*Why lean:* solo build, off-the-shelf managed infra (Supabase EU + Vercel), and an open-source ML
+stack (Tesseract + Presidio + spaCy) — no licensed forecasting/ML platform.
 
-### A.2 Ongoing cost (Year-1 rollout, Phases 4–5)
+### A.2 Ongoing cost (per year, at small scale — e.g. 5–20 orgs)
 
 | Item | Assumption | EUR/yr |
 |---|---|---|
-| Model owner | 0.5 FTE (drift/retrain) | 45,000 |
-| Engineering — extend to all categories | ~6 wk one-off | 18,000 |
-| Cloud compute (production) | €500–900/mo | 8,000 |
-| BI licences | ~15 seats Power BI Pro | 1,800 |
-| Monitoring / alerting | lightweight | 1,200 |
-| Training & change management | workshops, docs | 6,000 |
-| LLM API fees (copilot/commentary) | gated, on-demand, prompt-cached* | ~1,000 |
-| Contingency (~15%) | | 12,000 |
-| **Year-1 rollout total** | | **≈ 92,000** (range €75k–€115k) |
+| Vercel (web hosting) | Pro tier | 240 |
+| Supabase EU (DB/auth/storage) | Pro tier | 300 |
+| VPS for the OCR/redaction worker | ~€10–15/mo (the ML stack is heavy) | 180 |
+| Resend (transactional email) | low volume | 240 |
+| Domain | kita-connect.cloud | 15 |
+| **LLM extraction (Claude Haiku)** | gated (only on capture), redacted text only, cheap model | ~60 |
+| Maintenance / support | ~0.1 FTE owner time (informal at this scale) | 6,000 |
+| Contingency (~15%) | | 1,100 |
+| **Year-1 ongoing total** | | **≈ 8,300** (dominated by owner time; cash infra ≈ €1,300/yr) |
 
-\* The agent calls are gated (not on every refresh) and prompt-cached, keeping LLM spend in the low
-hundreds–€1k/yr range, not a runaway cost.
+\* **LLM spend is tiny by design:** the model is called **once per captured notice** (not on every
+page view), on **short redacted text**, with the cheap `claude-haiku-4-5`. Even at hundreds of
+captures/month this is low single-digit euros — the cost driver is owner time, not AI.
 
-**Year-1 all-in ≈ €135,000. Year-2+ run-rate ≈ €60,000/yr** (owner + infra + licences).
+**Cash infrastructure cost ≈ €1,300/yr** regardless of org count at this scale; the per-org
+marginal cost is dominated by a few extra LLM calls (cents).
 
-### A.3 Business value estimate (deliberately conservative)
+### A.3 Business value estimate (two lenses, deliberately conservative)
 
-The case rests on **risk reduction + working capital**, not a heroic cost-out number.
+**Lens 1 — value to the adopting org (the buyer's ROI).** The org's "cost" today is *missed
+communication* and *admin time*, not cash:
 
-- **Evidence band:** AI forecasting cuts error 30–50%, inventory 20–50%, stockout lost-sales up to
-  65% (vendor — treat as upper bound). Academic base case: most real supply-chain AI savings are
-  **<10%** — **use <10% as the base case.**
-- **Mechanism 1 — working capital:** even a **2–3% reduction** in inventory carrying cost on the
-  hardware portion of a €640M operation frees **single-digit €M** in cash; a conservative
-  attributable benefit of **~€150k/yr** is a tiny fraction of that.
-- **Mechanism 2 — avoided stockouts:** one avoided GPU-capacity stockout on a volatile lead time
-  protects customer revenue far exceeding the program cost.
+- **Admin time saved:** the alternative to Aushang is either (a) do nothing (paper only), or (b)
+  maintain a second system — retyping notices into a newsletter/app. Aushang replaces (b)'s data
+  entry with *photograph + confirm*. Conservatively **~30–60 min/week** of admin retyping avoided
+  per org → at a notional €20/hr that is **~€500–1,000/yr** of admin time per org, plus the far
+  larger un-priced value of *parents no longer missing closures and events.*
+- **Avoided "second system":** the org does not buy/maintain a separate portal or newsletter tool
+  (typical small-org tools run €5–20/user/mo) — Aushang is one capture habit, not a new process.
 
-**Conservative modelled benefit: ~€150,000/yr** (working capital + avoided stockout), explicitly
-**to be validated by the pilot holdout, not promised.**
+**Lens 2 — value to the operator (the product's ROI).** A multi-tenant SaaS at a modest per-org
+price. Conservative model: **€15/org/month** (a small Kita budget line, well under a per-seat app).
+
+- 10 orgs → €1,800/yr revenue; 20 orgs → €3,600/yr; 50 orgs → €9,000/yr.
+- Cash infra cost stays ~€1,300/yr until well into the dozens of orgs (managed infra scales
+  cheaply; LLM is cents/org).
+
+**Conservative modelled benefit (operator lens):** at **20 orgs × €15/mo = €3,600/yr revenue**
+against **~€1,300/yr cash infra**, the product is **cash-positive on infra by ~15 orgs** — owner
+time is the real investment, recovered as the org count grows. *To be validated by the pilot
+converting to a paying org, not promised.*
 
 ### A.4 ROI calculation
 
 `ROI = (Net Benefit / Total Cost) × 100`
 
-**12-month horizon:**
-- Total cost (year-1 all-in) = €135,000
-- Benefit (conservative) = €150,000
-- Net benefit = €150,000 − €135,000 = **€15,000**
-- **ROI₁₂ = (15,000 / 135,000) × 100 ≈ +11%**
+Two scenarios, both honest. **Owner time is the dominant cost**, so ROI is shown on the **cash**
+basis (the decision a bootstrapped operator actually faces) and noted on the all-in basis.
 
-**36-month horizon:**
-- Total cost = €135,000 + 2 × €60,000 = €255,000
-- Benefit = 3 × €150,000 = €450,000
-- Net benefit = €450,000 − €255,000 = **€195,000**
-- **ROI₃₆ = (195,000 / 255,000) × 100 ≈ +76%**
+**Operator, 12-month horizon (cash basis, 20 orgs):**
+- Cash cost (infra) = €1,300
+- Revenue (20 orgs × €15/mo) = €3,600
+- Net benefit = €3,600 − €1,300 = **€2,300**
+- **ROI₁₂ (cash) = (2,300 / 1,300) × 100 ≈ +177%**
 
-*Sensitivity:* at the literature's mid-band (not the conservative floor), benefit ≥ €400k/yr →
-ROI₁₂ jumps to **+196%**. The base case is positive even before any upside.
+**Operator, 36-month horizon (all-in, incl. the €35k build + owner time):**
+- Total cost = €35,000 build + 3 × €8,300 ongoing = €59,900
+- Revenue (ramp 10 → 20 → 35 orgs) ≈ €1,800 + €3,600 + €6,300 = €11,700
+- Net = **−€48,200** → **ROI₃₆ (all-in) ≈ −80%** at this price/scale.
+
+**The honest read:** at a €15/org price and tens of orgs, Aushang is **cash-positive to run** but
+does **not** repay a full-cost solo build inside 3 years on subscription alone. It pays back as
+either (a) **scale** (hundreds of orgs — the build cost amortizes; at 200 orgs revenue ≈ €36k/yr
+against ~€3k infra), or (b) a **higher-value channel** (sold *through* a Kita-association / Träger
+or a municipality as a bundled offering), or (c) treated as a **portfolio/credential project** whose
+return is the live, compliant reference build, not the subscription line.
+
+*Sensitivity:* the decisive lever is **price × org count via a channel**, not single-org self-serve.
+At €25/org/mo through an association reselling to 150 Kitas, revenue ≈ €45k/yr → the build repays
+inside year 1 of that channel.
 
 ### A.5 Assumptions table
 
 | # | Assumption | Value | Justification |
 |---|---|---|---|
-| 1 | Internal blended day rate | €700 | ≈€90k loaded annual / ~130 productive days per half-year (DACH) |
-| 2 | Contractor day rate | €1,000 | Typical DACH senior data/ML contractor |
-| 3 | PoC already exists | true | The system is built — pilot is validation, removing greenfield cost |
-| 4 | Forecasting is open-source | €0 licence | Prophet/statsforecast/sklearn; avoids €50k–250k+/yr platform fee (R8) |
-| 5 | Conservative benefit | €150k/yr | <10% academic base case applied to a fraction of carrying cost / avoided stockout on €640M |
-| 6 | Managed spend | €640M/yr | Sector/size profile (IONOS-scale cloud enterprise) |
-| 7 | LLM fees gated + cached | ~€1k/yr | Copilot calls are on-demand + prompt-cached, not per-refresh |
-| 8 | Year-2+ run-rate | €60k/yr | Model owner (0.5 FTE) + infra + licences only |
-| 9 | Hardware excluded | n/a | Net-new DC hardware is the spend being optimised, not a project cost |
+| 1 | Solo build day rate | €600 | DACH freelance full-stack, blended |
+| 2 | MVP already exists | true | Live at kita-connect.cloud; this is validation/rollout, not greenfield |
+| 3 | ML stack is open-source | €0 licence | Tesseract + Presidio + spaCy; no licensed OCR/NLP platform |
+| 4 | Managed infra | ~€1.3k/yr | Vercel Pro + Supabase Pro EU + small VPS + Resend at low volume |
+| 5 | LLM gated + cheap | ~€60/yr | `claude-haiku-4-5`, **once per capture**, on short **redacted** text only |
+| 6 | Per-org price | €15/mo | A plausible small-org budget line; well under a per-seat app |
+| 7 | Owner time | 0.1 FTE / €6k/yr | Informal solo maintenance at small scale; the dominant cost |
+| 8 | Scale lever | channel sale | Association/Träger/municipality reselling many orgs is the path to full payback |
+| 9 | Per-org marginal cost | cents | A few extra LLM calls; managed infra absorbs the rest |
 
 ### A.6 Break-even
 
-**Inside year 1.** At the conservative €150k/yr benefit vs. €135k all-in, the program breaks even
-at **~10.8 months**. At the evidence mid-band it breaks even in **~4 months**. The decisive driver
-is *one avoided stockout* on a volatile chip lead time — a single such event can pay for the year.
+**On cash infra: ~15 paying orgs.** At €15/org/mo, 15 orgs ≈ €2,700/yr revenue covers the ~€1,300
+cash infra plus headroom. **On the full build cost: only at scale or via a channel** — ~200
+self-serve orgs, or a single association deal. The honest verdict: *Aushang is cheap to run and the
+core feature is proven; the open question is distribution, not technology or cost.*
 
 ---
 
@@ -108,16 +133,18 @@ Likelihood (1 very unlikely → 5 very likely) × Impact (1 negligible → 5 sev
 
 | # | Category | Risk | L | I | Level | Mitigation |
 |---|---|---|---|---|---|---|
-| R1 | **Technical** | Model drift / accuracy decays; forecast no better than the spreadsheet | 3 | 4 | **12** | Named model owner (0.5 FTE); walk-forward backtest as the gate; **Syntetos–Boylan routing** sends lumpy SKUs to the right method; auto-retrain + drift alerts; **pilot can say "stop"** if accuracy ≤ baseline |
-| R2 | **Technical** | LLM hallucination / bad advice on a money-moving decision | 4 | 5 | **20** | **"LLM advises, deterministic code decides"** — supplier/qty/price are computed, never model-generated; a deterministic gate (spend cap, confidence floor, approved-source, storage-headroom) decides; **29-scenario agent-safety harness** regression-tests the gate against hostile advice (unapproved supplier, over-cap, prompt injection, garbage JSON) |
-| R3 | **Technical** | Integration failure with ERP/P2P (Coupa/SAP) | 3 | 3 | **9** | Hexagonal adapter layer; idempotent sync (re-import never duplicates); runs *alongside* the ERP, proposes requisitions back rather than replacing it; Postgres dialect proven in CI |
-| R4 | **Regulatory** | EU AI Act / GDPR non-compliance; data breach | 2 | 5 | **10** | System classifies as **Limited/Minimal risk** (decision-support with human-in-the-loop — see [EU AI Act doc](compliance/eu_ai_act_compliance.md)); GDPR DPIA done ([GDPR doc](compliance/gdpr_documentation.md)); no real personal data processed; forge-locked prod (no weak admin, no seed, persistent storage only), SAST + dependency-audit in CI |
-| R5 | **Ethical** | Bias / unfair supplier treatment; over-automation removing human judgment | 2 | 4 | **8** | Sourcing is rule-based (preference rank, lead time, price) and auditable — not a black-box model picking winners; every material buy is human-approved; full decision trail logged; the AI cannot exclude a supplier |
-| R6 | **Operational** | Low user adoption / change-management failure (planners distrust or bypass it) | 4 | 4 | **16** | Decision-support not replacement (human keeps the pen); the cockpit *explains* every number (click-to-drill formula); "why the forecast missed" diagnostic builds trust; phased rollout starts with the worst category for a quick visible win; training + champion |
-| R7 | **Operational** | Over-ordering past warehouse capacity (working-capital / space blowout) | 3 | 3 | **9** | **Server-side over-order guard** — an order that exceeds free-to-order warehouse capacity is refused/clamped (enforced, not advisory); live capacity-flow metric (committed vs free, coverage, depletion) shown before ordering |
-| R8 | **Regulatory/Commercial** | Vendor lock-in to a commercial forecasting platform | 2 | 3 | **6** | Open-source forecasting in the pilot; commercial platform (€50k–250k+/yr) explicitly out of scope until value is proven on our data |
+| R1 | **Regulatory / Privacy** | **PII leak** — a child's/parent's name or contact reaches the external LLM or a member who shouldn't see it | 3 | 5 | **15** | **Privacy by construction:** PII redacted **locally** (Presidio + spaCy + German regex, **fail-closed**) *before* the only external AI call — raw images/PII never leave the box; PII columns (`ocr_text_raw`, `source_image_path`, …) are **column-`REVOKE`'d** from members at the DB; clear-photo release is **double-gated** (member opt-in × admin release) and served only via short-TTL signed URLs. Backstopped by RLS + a source-secret CI scan. See [GDPR doc](compliance/gdpr_documentation.md) |
+| R2 | **Technical / AI** | LLM hallucinates structure — invents a date, mis-classifies a notice, claims an official Nutri-Score | 4 | 3 | **12** | **"LLM advises, code decides":** output is **schema-validated** (strict JSON, `additionalProperties:false`); validation failure → **manual path, never auto-publish**; the admin **confirms** the content type (routing reads only the *confirmed* value, NULL until then); dates the model can't resolve go to `ambiguous_dates[]` not invented; Nutri-Score is schema-forced to `nutri_is_estimate: true` — the model cannot claim an official rating |
+| R3 | **Technical / AI** | Over-redaction mangles ordinary notices (town names, festival names masked as "names") | 4 | 2 | **8** | Per-entity confidence thresholds raised for fuzzy types (PERSON 0.6+), `LOCATION` **excluded entirely** (on a public board the "locations" are the org's own name/town, not PII), deterministic PII still caught at 1.0; the **admin review is the backstop** — un-mask is one tap. Tuned during real-world testing |
+| R4 | **Operational** | **Low adoption / distribution** — small orgs are hard to reach and slow to change; the build doesn't repay on self-serve subscription | 4 | 4 | **16** | The product is *built around* the adoption blocker (no process change — just photograph the board); pilot with a real Kita first for a reference; pursue a **channel** (Kita-association / Träger / municipality) rather than one-Kita-at-a-time self-serve (see ROI A.4 and [strategic plan](strategic_plan.md)) |
+| R5 | **Technical** | Worker/infra failure — captures upload but stay `processing` (no worker), or OCR quality is poor on a bad photo | 3 | 3 | **9** | The web app **runs without the worker** (captures queue as `processing`, the app is otherwise fully functional); OpenCV deskew + capture-time compression improve OCR; a poor extraction degrades to the **manual path** (admin types it) — never a hard failure or a wrong publish |
+| R6 | **Ethical** | Surveillance creep / consent — photographing a board that names children; pushing children's data into an app | 2 | 4 | **8** | The tool processes **only what the org already published** to its own board (no new collection); **no public surface**, invite-only; clear-photo of a person is **double-gated** opt-in; the design sends **no un-redacted PII** anywhere and gives members deletion/erasure flows. Purpose-limited to the org's own communication |
+| R7 | **Regulatory** | EU AI Act misclassification / non-compliance | 2 | 4 | **8** | System classifies as **Limited risk** (decision-support, human-in-the-loop, no Annex III area — see [EU AI Act doc](compliance/eu_ai_act_compliance.md)); transparency met (AI suggestions are labelled, admin confirms); GDPR DPIA done; the most consequential control — *local redaction + human confirmation* — is exactly what keeps it out of High-risk |
+| R8 | **Regulatory / Commercial** | LLM data-residency — extraction currently uses **Claude (Anthropic, US-hosted)**, an EU↔US transfer | 2 | 3 | **6** | **Only locally-redacted text** (PII already masked to `[NAME_x]`) crosses the boundary — **no personal data and no raw image**; the Anthropic key lives **on the worker only**, never in the web app. If strict EU residency is required, the worker's `extraction` module swaps to an **EU LLM (Mistral)** as a **one-module change** — nothing else in the pipeline moves |
 
-**Highest residual risks:** R2 (LLM on money) and R6 (adoption). R2 is the one most thoroughly
-engineered against — it's the project's core thesis and is regression-tested. R6 is addressed by
-design (human-in-the-loop, explainability, phased rollout) but ultimately depends on execution and
-is the real make-or-break of the rollout.
+**Highest residual risks:** **R4 (adoption/distribution)** and **R1 (PII leak)**. R1 is the most
+thoroughly engineered-against — it is the project's core thesis, enforced at the architecture/DB
+layer and adversarially reviewed, not promised in policy. **R4 is the real make-or-break:** the
+technology and privacy story are strong; whether the product reaches enough orgs to repay a full
+build depends on distribution (a channel), which is an execution/go-to-market question, not a
+technical one.

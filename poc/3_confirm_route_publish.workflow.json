@@ -1,0 +1,99 @@
+{
+  "name": "Aushang — POC 3 · Human Confirm → Route → Publish (decides)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "11111111-1111-4111-8111-111111111111",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-760, 320]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "content_type_suggested", "type": "string", "value": "info" },
+            { "id": "a2", "name": "admin_confirmed_type", "type": "string", "value": "event_notice" },
+            { "id": "a3", "name": "title", "type": "string", "value": "Elternabend" },
+            { "id": "a4", "name": "starts_on", "type": "string", "value": "2026-07-24" },
+            { "id": "a5", "name": "time_start", "type": "string", "value": "18:30" },
+            { "id": "a6", "name": "admin_pressed_publish", "type": "boolean", "value": true }
+          ]
+        },
+        "options": {}
+      },
+      "id": "22222222-2222-4222-8222-222222222222",
+      "name": "Draft + Admin Decision",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-540, 320],
+      "notes": "The AI SUGGESTED 'info'; the admin CORRECTED it to 'event_notice' (this is the 'tap to correct' in the MVP review screen). Routing will read the CONFIRMED value, not the suggestion. Set admin_pressed_publish=false to see publishing blocked."
+    },
+    {
+      "parameters": {
+        "jsCode": "// THE DECISION (no AI). Routing reads ONLY the admin-confirmed content_type —\n// never the LLM's suggestion. Mirrors src/lib/content/types.ts ROUTING and the\n// publish_post RPC. Nothing becomes member-visible unless the admin confirmed a\n// type AND pressed publish.\nconst d = $json;\n\n// 1. The confirmed type is authoritative. NULL/empty = unconfirmed = NOT routable.\nconst confirmed = (d.admin_confirmed_type || '').trim();\nconst ROUTING = {\n  meal_plan:     ['Essensplan (section)', 'post_details'],\n  reflection:    ['Rückblick (section)', 'post_details'],\n  health_notice: ['top-of-feed alert (by severity)'],\n  event_notice:  ['events table', 'ICS calendar', 'Termine library'],\n  info:          ['general feed']\n};\n\nlet errors = [];\nif (!ROUTING[confirmed]) errors.push('content_type not confirmed (NULL means unconfirmed) — cannot route');\nif (!d.admin_pressed_publish) errors.push('admin has not pressed publish — stays draft');\n\nconst canPublish = errors.length === 0;\nconst destinations = canPublish ? ['Pinnwand (every published post)', ...ROUTING[confirmed]] : [];\n\nreturn [{ json: {\n  used_suggestion: d.content_type_suggested,        // shown for contrast\n  used_confirmed: confirmed,                         // what routing ACTUALLY used\n  routed_by_suggestion: false,                       // <-- the invariant\n  can_publish: canPublish,\n  blockers: errors,\n  destinations,\n  verdict: canPublish ? `PUBLISH -> ${destinations.join(' + ')}` : `BLOCKED: ${errors.join('; ')}`\n}}];"
+      },
+      "id": "33333333-3333-4333-8333-333333333333",
+      "name": "Route by CONFIRMED type (no AI)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-300, 320],
+      "notes": "The heart of POC 3: routing uses the admin-CONFIRMED type (event_notice), NOT the AI's suggestion (info). And it only publishes if the admin pressed publish. This is 'deterministic code & a human decide'."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.can_publish }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "44444444-4444-4444-8444-444444444444",
+      "name": "Confirmed + Published?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-60, 320],
+      "notes": "TRUE = a human confirmed a real type AND pressed publish -> route to its destinations (here: events + ICS + Termine, plus the Pinnwand). FALSE = unconfirmed or not published -> stays a draft, invisible to members."
+    },
+    {
+      "parameters": {},
+      "id": "55555555-5555-4555-8555-555555555555",
+      "name": "PUBLISH → feed/calendar/ICS",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [180, 200],
+      "notes": "In the MVP: the publish_post RPC flips status to 'published', creates calendar events, adds them to subscribed ICS feeds, and fans out the email/push digest. Members now see it."
+    },
+    {
+      "parameters": {},
+      "id": "66666666-6666-4666-8666-666666666666",
+      "name": "STAYS DRAFT (invisible to members)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [180, 440],
+      "notes": "No confirmation or no publish press -> the post is never member-visible. The default path is SAFE: nothing leaks to members without a human."
+    }
+  ],
+  "connections": {
+    "Manual Trigger": { "main": [[{ "node": "Draft + Admin Decision", "type": "main", "index": 0 }]] },
+    "Draft + Admin Decision": { "main": [[{ "node": "Route by CONFIRMED type (no AI)", "type": "main", "index": 0 }]] },
+    "Route by CONFIRMED type (no AI)": { "main": [[{ "node": "Confirmed + Published?", "type": "main", "index": 0 }]] },
+    "Confirmed + Published?": {
+      "main": [
+        [{ "node": "PUBLISH → feed/calendar/ICS", "type": "main", "index": 0 }],
+        [{ "node": "STAYS DRAFT (invisible to members)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
