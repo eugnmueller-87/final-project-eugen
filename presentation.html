@@ -95,7 +95,7 @@
     <h2>The LLM advises. PII is masked first. A human decides.</h2>
     <p class="sub">Two non-negotiable principles, enforced by architecture — not policy:</p>
     <div class="grid g2" style="margin-top:18px">
-      <div class="card"><h3>1 · Privacy by construction</h3><p>PII is detected and masked <b class="hot">locally, on our own worker, before any external AI call</b>. Raw photos never leave our infra. The LLM only ever sees <b class="hot">redacted</b> text.</p></div>
+      <div class="card"><h3>1 · Privacy by construction</h3><p>PII is detected and masked <b class="hot">locally, on our own worker, before any external AI call</b>. Raw photos never leave our infra. The LLM only ever sees <b class="hot">redacted</b> text — and the provider is swappable (Claude, or <b class="hot">EU-hosted Mistral</b> for strict residency).</p></div>
       <div class="card"><h3>2 · Advises, doesn't decide</h3><p>The LLM <b class="hot">suggests</b> a content type + dates. Output is schema-validated; an <b class="hot">admin confirms</b> before publish. Routing reads only the <b class="hot">confirmed</b> value, never the model's.</p></div>
     </div>
     <div class="pill">This is the trust story — and what keeps it out of the EU AI Act's High-risk tier.</div>
@@ -110,7 +110,7 @@
       <span class="node">📷 Photograph board</span><span class="arrow">→</span>
       <span class="node code">OCR (Tesseract)</span><span class="arrow">→</span>
       <span class="node lock">🔒 Local redact (Presidio)</span><span class="arrow">→</span>
-      <span class="node ai">Claude suggests</span>
+      <span class="node ai">LLM suggests (Claude / EU-Mistral)</span>
     </div>
     <div class="flow">
       <span class="node code">Schema-validate</span><span class="arrow">→</span>
@@ -144,6 +144,7 @@
       <li><b class="hot">Local redaction, fail-closed</b> — Presidio + spaCy + a German regex pack mask names/phones/emails/IBAN/birthdates <b class="hot">before</b> the one external AI call.</li>
       <li><b class="hot">DB column REVOKE</b> — raw-PII columns are revoked from members; even an admin's browser can't read them. Admin PII access is server-only by construction.</li>
       <li><b class="hot">Double-gated photo consent</b> — the original is shown only on member opt-in × admin release (both default off), via a short-TTL signed URL.</li>
+      <li><b class="hot">Child photos aren't retained</b> — a weekly Rückblick (the type most likely to show children) has its raw original <b class="hot">deleted at publish</b>; members keep only the masked image.</li>
       <li><b class="hot">Build-blocking secret scan</b> — a CI + pre-commit guard fails the build if any secret reaches the client bundle or source.</li>
     </ul>
     <div class="foot"><span>06 · Privacy proven</span><span>Aushang</span></div>
@@ -195,7 +196,8 @@
     <ul class="feat">
       <li><b class="hot">Build &amp; POC done</b> — the full pipeline is live; four no-code workflows prove the pattern; bilingual DE/EN UI.</li>
       <li><b class="hot">Pilot in progress</b> — a real Kita on its real board; tune redaction, validate the review flow, confirm parents stop missing things.</li>
-      <li><b class="hot">Native app in progress</b> — a Capacitor Android shell (native camera wired) builds a Play-ready AAB in CI → an app-store presence for the channel.</li>
+      <li><b class="hot">Native Android app — built</b> — a Capacitor shell (native camera) builds an installable AAB/APK in CI; Play Developer account in verification, closed test next.</li>
+      <li><b class="hot">Multi-vertical &amp; portable</b> — multi-provider LLM (Claude / Mistral-EU / OpenAI / Gemini) + a one-command self-host wizard; admin-defined custom categories let clubs/churches reuse it, not just Kitas.</li>
       <li><b class="hot">Then a channel</b> — sell through a Kita-association / Träger / municipality: one sale, many orgs, the build cost amortized. Per-org SaaS €15–25/mo.</li>
     </ul>
     <span class="tag">Verdict: 🟢 ship &amp; validate the pilot, then pursue the channel</span>
