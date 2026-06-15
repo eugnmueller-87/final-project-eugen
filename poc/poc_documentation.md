@@ -39,11 +39,16 @@ advise-vs-decide split, and the human-in-the-loop publish* — without any appli
 
 ## 0a. Workflow gallery — the running POCs
 
-> **Screenshots:** capture each imported workflow running in n8n and drop the PNGs into a
-> `poc_screenshots/` folder, then reference them here. _(Placeholder — to be added from a real n8n
-> run; the four importable `*.workflow.json` files are the deliverable and run as-is.)_
+Each screenshot below is the corresponding `*.workflow.json` **imported and running in n8n**. The
+shape is identical in all four: a **Manual Trigger** → a **Set** node holding the mock inputs → a
+**Code** node that owns the decision (redaction / validation / routing / consent) → an **IF** node
+that branches **true / false** to two terminal nodes. The **Code** node is where deterministic logic
+lives; in POC 2 the only AI node (the **Claude** HTTP request) sits *before* the Code validator —
+visibly "the LLM advises, the code decides."
 
 ### 1 · Local redaction boundary
+![POC 1 — Local redaction boundary running in n8n](poc_screenshots/1_redaction_boundary.png)
+
 Raw OCR text containing a name, phone, email, and a child's birthdate → a **Code** node masks each to
 `[NAME_1]`, `[TEL_1]`, `[MAIL_1]`, `[GEBURT_1]` → a **fail-closed assert** re-checks that no PII
 pattern survived → **IF** routes to *"send REDACTED text to LLM"* or, if anything leaked, *"BLOCK"*.
@@ -51,6 +56,8 @@ On the default data every PII item is masked and the boundary passes — **only 
 allowed to cross to the AI.** This is *privacy by construction*, in no-code.
 
 ### 2 · LLM extract → schema-validate
+![POC 2 — Claude suggests, then a Code node schema-validates, in n8n](poc_screenshots/2_extract_validate.png)
+
 The **redacted** text (`[NAME_1]` preserved verbatim) → **Claude** returns a **suggested**
 `content_type` + extracted events with ISO dates and an `ambiguous_dates[]` list of anything it
 **couldn't** resolve (it must declare, not invent) → a deterministic **schema validator** checks the
@@ -58,6 +65,8 @@ closed taxonomy, ISO dates, valid times → **IF** routes to *"review gate"* (va
 (invalid). The AI **advises**; a malformed suggestion **can never auto-publish**.
 
 ### 3 · Human confirm → route → publish
+![POC 3 — route by the admin-confirmed type, publish only on human confirm, in n8n](poc_screenshots/3_confirm_route_publish.png)
+
 The draft carries the AI's suggestion (`info`) **and** the admin's correction (`event_notice` — the
 "tap to correct" of the real review screen) → a **Code** node routes by the **confirmed** type, never
 the suggestion, and only if the admin **pressed publish** → **IF** routes to *"PUBLISH →
@@ -66,6 +75,8 @@ Termine library + the Pinnwand — **because a human confirmed it.** This is *de
 human decide.*
 
 ### 4 · Double-gated clear-photo consent
+![POC 4 — double-gated consent (member opt-in AND admin release), in n8n](poc_screenshots/4_photo_consent_gate.png)
+
 Two independent flags, both default OFF → a **Code** node releases the **original** photo **only** if
 `member_opted_in AND admin_released`; a client attempt to set the release is **ignored** → **IF**
 routes to *"signed URL to original"* or *"blurred image only"*. On the defaults (consent yes, release
@@ -150,5 +161,5 @@ The POC proves *the pipeline and the two safety patterns*; the MVP proves *produ
 > validate → the admin correcting the type and publishing → the consent gate withholding the
 > original.
 
-(The four importable flows are the `*.workflow.json` files in this folder; annotated screenshots go
-in `poc_screenshots/` once captured.)
+(The four importable flows are the `*.workflow.json` files in this folder; screenshots of each
+running in n8n are in [`poc_screenshots/`](poc_screenshots/) and shown in the gallery above.)
