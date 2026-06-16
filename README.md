@@ -14,6 +14,35 @@ testing) · **[MVP source](https://github.com/eugnmueller-87/DIGITNEWS)** ·
 
 ---
 
+## Product tour
+
+Screens from the **live MVP** (German UI) — the whole loop, photo → private feed → calendar → admin.
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="mvp/screenshots/01-capture.png"><img src="mvp/screenshots/01-capture.png" alt="Aushang fotografieren — capture screen" width="100%"></a>
+      <p align="center"><b>1 · Capture</b><br>Admin photographs the paper board. &ldquo;We read it, mask personal data, and prepare a draft for review.&rdquo;</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="mvp/screenshots/02-feed.png"><img src="mvp/screenshots/02-feed.png" alt="Pinnwand — extracted, typed feed" width="100%"></a>
+      <p align="center"><b>2 · Private feed</b><br>The notice comes back as <i>typed</i> posts (Termin / Info / Rückblick) — structure the LLM <i>suggested</i> and the admin <i>confirmed</i>.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="mvp/screenshots/03-calendar.png"><img src="mvp/screenshots/03-calendar.png" alt="Kalender with ICS subscription" width="100%"></a>
+      <p align="center"><b>3 · Calendar + ICS</b><br>Events land on a shared calendar members can subscribe to (ICS), so closures and dates sync to their own phone.</p>
+    </td>
+    <td width="50%" valign="top">
+      <a href="mvp/screenshots/04-members.png"><img src="mvp/screenshots/04-members.png" alt="Mitglieder — members, groups, QR onboarding" width="100%"></a>
+      <p align="center"><b>4 · Members &amp; onboarding</b><br>Invite-only members, groups, and roles — plus a QR poster for the board so parents can request access.</p>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## Core deliverables (1–7)
 
 ### 1. Use Case Definition — ✅ done
