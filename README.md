@@ -18,7 +18,7 @@ are enforced by architecture, not policy.
 
 **Live:** [kita-connect.cloud](https://kita-connect.cloud) (invite-only; live & in real-world
 testing) · **[MVP source](https://github.com/eugnmueller-87/DIGITNEWS)** ·
-**Presentation:** [`presentation.html`](https://htmlpreview.github.io/?https://raw.githubusercontent.com/eugnmueller-87/final-project-eugen/main/presentation.html) (open in a browser)
+**Presentation:** [`presentation.pptx`](presentation.pptx) (download — PowerPoint deck)
 
 ---
 
@@ -107,10 +107,9 @@ Phases (Build → POC → Pilot → Multi-org → Channel) · timeline + milesto
 (channel-led: association/Träger) · stakeholder communication plan · KPIs per phase ·
 commercialisation model (per-org SaaS via a channel, self-serve as proof).
 
-### 7. Presentation — 🟡 HTML done; PDF export pending
-[`presentation.html`](https://htmlpreview.github.io/?https://raw.githubusercontent.com/eugnmueller-87/final-project-eugen/main/presentation.html) — 11-slide self-contained deck (keyboard/swipe nav),
+### 7. Presentation — ✅ done
+[`presentation.pptx`](presentation.pptx) — PowerPoint deck (download),
 also outlined in [`presentation_outline.md`](presentation_outline.md) with Q&A prep.
-- 🟡 **You add:** export to `presentation.pdf` (browser → Print → Save as PDF) if a PDF is required.
 
 ## Stretch deliverable (8)
 
@@ -136,7 +135,7 @@ Kita channel (see `mvp/mvp_documentation.md` §8–9).
 - [x] `compliance/eu_ai_act_compliance.md`
 - [x] `compliance/gdpr_documentation.md`
 - [x] `strategic_plan.md`
-- [~] Presentation: `presentation.html` ✅ · `presentation.pdf` export 🟡
+- [x] Presentation: `presentation.pptx` ✅
 
 **Stretch**
 - [x] `mvp/mvp_documentation.md`
@@ -149,7 +148,7 @@ Kita channel (see `mvp/mvp_documentation.md` §8–9).
 ```
 final-project-eugen/
 ├── README.md
-├── presentation.html              # 11-slide deck (→ export presentation.pdf)
+├── presentation.pptx              # PowerPoint deck
 ├── presentation_outline.md
 ├── use_case_definition.md         # 1
 ├── poc/                           # 2

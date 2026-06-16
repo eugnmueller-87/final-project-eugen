@@ -1,7 +1,7 @@
 # Presentation Outline — Aushang
 
-> The slide deck ([`presentation.html`](presentation.html)) follows this structure — 11 slides,
-> ~10 min + Q&A. Export to `presentation.pdf` (browser → Print → Save as PDF) if a PDF is required.
+> The slide deck ([`presentation.pptx`](presentation.pptx)) follows this structure — 12 slides,
+> ~10 min + Q&A.
 
 ---
 
