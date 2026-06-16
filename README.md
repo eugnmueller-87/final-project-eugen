@@ -1,5 +1,13 @@
 # Final Project — AI Solution with Compliance & Strategic Implementation
 
+[![Live](https://img.shields.io/badge/live-kita--connect.cloud-2e8b6e?style=flat-square)](https://kita-connect.cloud)
+[![MVP](https://img.shields.io/badge/MVP-live%20in%20production-success?style=flat-square)](https://github.com/eugnmueller-87/DIGITNEWS)
+[![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Limited%20risk-0a66c2?style=flat-square)](compliance/eu_ai_act_compliance.md)
+[![GDPR](https://img.shields.io/badge/GDPR-DPIA%20%2B%20local%20PII%20masking-0a66c2?style=flat-square)](compliance/gdpr_documentation.md)
+[![POC](https://img.shields.io/badge/POC-4%20n8n%20workflows-ff6d5a?style=flat-square)](poc/poc_documentation.md)
+[![Simulation](https://img.shields.io/badge/simulation-52%20assertions%20green-success?style=flat-square)](simulation/)
+![Stack](https://img.shields.io/badge/stack-Next.js%20%C2%B7%20Supabase%20%C2%B7%20FastAPI-555?style=flat-square)
+
 **Author:** Eugen Müller
 **Use case / industry:** AI-assisted **digitization of the paper notice board** for small,
 low-tech community organizations (**Kitas**, clubs, churches, allotment associations).
