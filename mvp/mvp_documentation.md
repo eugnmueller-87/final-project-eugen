@@ -7,10 +7,11 @@ into a production-grade product. It is **live and in real-world testing**, not a
   there is deliberately **no public signup**)
 - **Source code:** https://github.com/eugnmueller-87/DIGITNEWS
 - **Status:** Phases 1–5 built; the full capture → publish pipeline runs end-to-end in production; a
-  first Kita is testing it. Post-launch the app gained per-user **English/German** UI, decorative
+  first Kita is testing it. Post-launch the app gained a per-user **German / English / Russian** UI
+  **plus AI translation of post content** (en/ru, on the same redacted-text LLM path), decorative
   **AI cover images** (built, dormant until an EU image endpoint is deployed), a stronger
   **reflection-photo deletion** privacy rule, and a **Capacitor Android native shell** (remote-URL
-  mode) that builds a Play-ready AAB in CI — see §9.
+  mode) that builds a Play-ready AAB in CI — see §8–9.
 
 > **Access for review:** the app is invite-only by design (it handles a real Kita's data). For a
 > grading walkthrough, request a provisioned demo account, or see the architecture + screenshots in
@@ -147,9 +148,16 @@ tracked source.
 
 The same human-confirm gate and privacy boundary carry every one of these:
 
-- **Per-user English/German UI** (`src/lib/i18n/`) — the whole app chrome translates; the *content*
-  (OCR'd German post text) and emails stay German. The dictionaries are compile-checked: a missing
-  or mismatched translation key is a **build error**, not a runtime gap.
+- **Per-user multilingual UI + AI content translation — German / English / Russian** (`src/lib/i18n/`,
+  migrations `0024`/`0025`). The whole app chrome translates (dictionaries are compile-checked — a
+  missing or mismatched key is a **build error**, not a runtime gap). Beyond the chrome, the *content*
+  itself (post titles, bodies, and the structured payload — meal plans, event names, etc.) is
+  **AI-translated at publish** into English and Russian: the worker translates the **already-redacted,
+  member-safe** text on the same EU-capable LLM path (so the same zero-PII boundary as extraction —
+  never raw images, never un-redacted PII), stores the results, and read sites overlay them at render.
+  German stays the source of truth with **per-field fallback** (a missing translation shows German),
+  and publishing is **never blocked** by translation (best-effort). Emails stay German. A one-off
+  backfill translated the existing corpus.
 - **Decorative AI cover images** (text-to-image, FLUX.1 [schnell]) — generated **from the redacted
   extraction (content type only)**, so the same zero-PII boundary as the text LLM call; no-people /
   decorative guardrails; **fail-open** (a missing cover never blocks a post); provider-agnostic via

@@ -118,11 +118,12 @@ also outlined in [`presentation_outline.md`](presentation_outline.md) with Q&A p
 A deployed, working AI system (not a mockup): the full capture → OCR → local redaction → LLM
 extraction → human review → publish pipeline runs in production; a first Kita is testing it.
 Architecture · setup · run · limitations · how it extends the POC. Four-layer security model,
-adversarially reviewed (`SECURITY.md` in the source repo). Post-launch it also gained per-user
-**English/German** UI, decorative **AI cover images** (zero-PII, EU-endpoint-ready, dormant), a
-**reflection-photo deletion** privacy rule (migration `0023`), and a **Capacitor Android native
-shell** (remote-URL mode) that builds a Play-ready AAB in CI — toward an app-store presence for the
-Kita channel (see `mvp/mvp_documentation.md` §8–9).
+adversarially reviewed (`SECURITY.md` in the source repo). Post-launch it also gained a per-user
+**German / English / Russian** UI **plus AI translation of post content** (en/ru, on the same
+redacted-text LLM path so the zero-PII boundary holds), decorative **AI cover images** (zero-PII,
+EU-endpoint-ready, dormant), a **reflection-photo deletion** privacy rule (migration `0023`), and a
+**Capacitor Android native shell** (remote-URL mode) that builds a Play-ready AAB in CI — toward an
+app-store presence for the Kita channel (see `mvp/mvp_documentation.md` §8–9).
 
 ---
 
