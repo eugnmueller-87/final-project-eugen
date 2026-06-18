@@ -18,7 +18,7 @@ are enforced by architecture, not policy.
 
 **Live:** [kita-connect.cloud](https://kita-connect.cloud) (invite-only; live & in real-world
 testing) · **[MVP source](https://github.com/eugnmueller-87/DIGITNEWS)** ·
-**Presentation:** **[📊 view the slides](presentation.pdf)** (opens in the browser) · [`presentation.pptx`](presentation.pptx) (editable PowerPoint)
+**Presentation:** **[📊 view the slides](presentation.pdf)** (opens in the browser)
 
 ---
 
@@ -108,8 +108,7 @@ Phases (Build → POC → Pilot → Multi-org → Channel) · timeline + milesto
 commercialisation model (per-org SaaS via a channel, self-serve as proof).
 
 ### 7. Presentation — ✅ done
-**[📊 view the slides in the browser](presentation.pdf)** (12-slide PDF — no download needed) ·
-[`presentation.pptx`](presentation.pptx) (editable PowerPoint),
+**[📊 view the slides in the browser](presentation.pdf)** (12-slide PDF — no download needed),
 also outlined in [`presentation_outline.md`](presentation_outline.md) with Q&A prep.
 
 ## Stretch deliverable (8)
@@ -137,7 +136,7 @@ app-store presence for the Kita channel (see `mvp/mvp_documentation.md` §8–9)
 - [x] `compliance/eu_ai_act_compliance.md`
 - [x] `compliance/gdpr_documentation.md`
 - [x] `strategic_plan.md`
-- [x] Presentation: `presentation.pdf` (view in browser) + `presentation.pptx` ✅
+- [x] Presentation: `presentation.pdf` (view in browser) ✅
 
 **Stretch**
 - [x] `mvp/mvp_documentation.md`
@@ -150,8 +149,7 @@ app-store presence for the Kita channel (see `mvp/mvp_documentation.md` §8–9)
 ```
 final-project-eugen/
 ├── README.md
-├── presentation.pdf               # slides — opens in the browser
-├── presentation.pptx              # editable PowerPoint deck
+├── presentation.pdf               # the slides — opens in the browser
 ├── presentation_outline.md
 ├── use_case_definition.md         # 1
 ├── poc/                           # 2
