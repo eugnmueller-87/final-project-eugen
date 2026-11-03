@@ -1,7 +1,7 @@
 # Final Project — AI Solution with Compliance & Strategic Implementation
 
 [![Live](https://img.shields.io/badge/live-kita--connect.cloud-2e8b6e?style=flat-square)](https://kita-connect.cloud)
-[![MVP](https://img.shields.io/badge/MVP-live%20in%20production-success?style=flat-square)](https://github.com/eugnmueller-87/DIGITNEWS)
+[![MVP](https://img.shields.io/badge/MVP-live%20in%20production-success?style=flat-square)](https://kita-connect.cloud)
 [![EU AI Act](https://img.shields.io/badge/EU%20AI%20Act-Limited%20risk-0a66c2?style=flat-square)](compliance/eu_ai_act_compliance.md)
 [![GDPR](https://img.shields.io/badge/GDPR-DPIA%20%2B%20local%20PII%20masking-0a66c2?style=flat-square)](compliance/gdpr_documentation.md)
 [![POC](https://img.shields.io/badge/POC-4%20n8n%20workflows-ff6d5a?style=flat-square)](poc/poc_documentation.md)
@@ -17,7 +17,7 @@ call**; an admin **confirms** before anything is published. Privacy and the advi
 are enforced by architecture, not policy.
 
 **Live:** [kita-connect.cloud](https://kita-connect.cloud) (invite-only; live & in real-world
-testing) · **[MVP source](https://github.com/eugnmueller-87/DIGITNEWS)** ·
+testing) · **[MVP source](https://github.com/eugnmueller-87/DIGITNEWS)** (private repo) ·
 **Presentation:** **[📊 view the slides](presentation.pdf)** (opens in the browser)
 
 ---
@@ -114,7 +114,7 @@ also outlined in [`presentation_outline.md`](presentation_outline.md) with Q&A p
 ## Stretch deliverable (8)
 
 ### 8. Working MVP — ✅ done (live)
-[`mvp/mvp_documentation.md`](mvp/mvp_documentation.md) · **live** + [code](https://github.com/eugnmueller-87/DIGITNEWS)
+[`mvp/mvp_documentation.md`](mvp/mvp_documentation.md) · **live** + [code](https://github.com/eugnmueller-87/DIGITNEWS) (private repo)
 A deployed, working AI system (not a mockup): the full capture → OCR → local redaction → LLM
 extraction → human review → publish pipeline runs in production; a first Kita is testing it.
 Architecture · setup · run · limitations · how it extends the POC. Four-layer security model,
@@ -140,7 +140,7 @@ app-store presence for the Kita channel (see `mvp/mvp_documentation.md` §8–9)
 
 **Stretch**
 - [x] `mvp/mvp_documentation.md`
-- [x] GitHub repository (MVP): https://github.com/eugnmueller-87/DIGITNEWS
+- [x] GitHub repository (MVP): https://github.com/eugnmueller-87/DIGITNEWS (private repo)
 
 ---
 
