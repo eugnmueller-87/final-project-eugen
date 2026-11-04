@@ -156,16 +156,12 @@ The POC proves *the pipeline and the two safety patterns*; the MVP proves *produ
 
 ## 6. Demo — the live product the POC models
 
-A screen recording of the **live MVP** at [kita-connect.cloud](https://kita-connect.cloud), the
-production system these workflows mirror. It walks the member-facing result of the
-capture → redact → suggest → confirm → publish pipeline: a published **Rückblick** (reflection) with
-its structured weekly summary, the **calendar** with an active ICS subscription, and an **Info** post
-showing a photographed board extracted into structured content with an admin **take-down** control.
-
-![Aushang live demo — feed, calendar/ICS, and a structured Info post on kita-connect.cloud](poc_screenshots/demo.gif)
+The **live MVP** at [kita-connect.cloud](https://kita-connect.cloud) is the production system these
+workflows mirror. Its screens are in the [product tour](../README.md#product-tour). The screen
+recording stays private, because it shows real notices from the pilot.
 
 > The four importable `*.workflow.json` files (above) are the **no-code POC** of this same
-> "advise → confirm → route" logic; the GIF is the **productionised MVP** it leads to. An end-to-end
+> "advise → confirm → route" logic; the live app is the **productionised MVP** it leads to. An end-to-end
 > simulation of every workflow lives in [`../simulation/`](../simulation/) — run `node simulation/run.js`.
 
 (The four importable flows are the `*.workflow.json` files in this folder; screenshots of each

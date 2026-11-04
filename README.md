@@ -25,6 +25,7 @@ testing) · **[MVP source](https://github.com/eugnmueller-87/DIGITNEWS)** (priva
 ## Product tour
 
 Screens from the **live MVP** (German UI) — the whole loop, photo → private feed → calendar → admin.
+The pilot's name and its access code are masked.
 
 <table>
   <tr>
